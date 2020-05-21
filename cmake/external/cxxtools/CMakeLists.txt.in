@@ -1,0 +1,28 @@
+cmake_minimum_required(VERSION 3.13)
+
+project(cxxtools-download NONE)
+
+# Use master if no version has been specified
+if(NOT CXXTOOLS_VERSION)
+  set(CXXTOOLS_VERSION 82edd71773bb1338a2d5d4d142796668a4235bd9)
+endif()
+
+include(ProcessorCount)
+ProcessorCount(CXXTOOLS_NBJOBS)
+if(CXXTOOLS_NBJOBS EQUAL 0)
+  set(CXXTOOLS_NBJOBS 1)
+endif()
+
+include(ExternalProject)
+ExternalProject_Add(cxxtools
+  GIT_REPOSITORY    https://github.com/maekitalo/cxxtools.git
+  GIT_TAG           ${CXXTOOLS_VERSION}
+  GIT_SHALLOW       FALSE
+  SOURCE_DIR        "${CMAKE_CURRENT_BINARY_DIR}/cxxtools-src"
+  BINARY_DIR        "${CMAKE_CURRENT_BINARY_DIR}/cxxtools-build"
+  PREFIX            "${CMAKE_CURRENT_BINARY_DIR}/cxxtools-destdir"
+  CONFIGURE_COMMAND autoreconf -i "${CMAKE_CURRENT_BINARY_DIR}/cxxtools-src" COMMAND "${CMAKE_CURRENT_BINARY_DIR}/cxxtools-src/configure" --prefix "${CMAKE_CURRENT_BINARY_DIR}/cxxtools-destdir" --disable-demos --disable-unittest
+  BUILD_COMMAND     make -j ${CXXTOOLS_NBJOBS}
+  INSTALL_COMMAND   make install
+  TEST_COMMAND      ""
+  )
