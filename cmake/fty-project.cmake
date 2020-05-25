@@ -34,6 +34,7 @@ include(${CMAKE_CURRENT_LIST_DIR}/target/export.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/target/version.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/target/uses.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/target/flags.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/target/install.cmake)
 
 ##############################################################################################################
 
@@ -57,6 +58,7 @@ macro(etn_target type name)
     set_cppflags(${name} args_FLAGS)
     preprocessor(${name} args_PREPROCESSOR)
     export_target(${name})
+    install_target(${name})
 
     dump_target(${name})
 endmacro()

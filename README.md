@@ -71,9 +71,47 @@ etn_create_lib_pkgconfig("etn-pq-common", "", "pthread dl")
 
 The pkgconfig file can be use by other cmake/autotools project to retrive PUBLIC compilation flags and PUBLIC dependencies.
 
-## Clang
-At configuration time the clang/.clang-format and clang/.clang-tidy files are copied to the project directory.
+### Target creation
 
-Most of the IDEs supports clang-format see https://clang.llvm.org/docs/ClangFormat.html.
+Target has follow syntax:
+```
+etn_target([type] [target name] 
+    SOURCES 
+        [sources list] 
+    USES 
+        [private dependencies list] 
+    USES_PUBLIC 
+        [public dependencies]
+    INCLUDE_DIRS 
+        [include directories]
+    PUBLIC 
+        [public headers]
+    PREPROCESSOR 
+        [preprocessor definitions]
+    FLAGS 
+        [extra compilation flags]
+    CMAKE 
+        [extra cmake scripts]
+    CONFIGS 
+        [configs]
+```
 
-Ensure that those files are not overwritten in your projects by ignoring them in the `.gitignore`.
+Where type could be:
+ * `exe` - regular executable
+ * `static` - static library
+ * `shared` - shared library
+ * `interface` - non binary library, just headers, configs etc
+
+`USES` and `USES_PUBLIC` are dependencies of the project. Firstly system will try to find dependency in the system. 
+If it will not found and ENABLE_STANDALONE is ON then will try to find it in `external` projects and will add it to compilation process.
+
+Example of the project:
+```
+etn_target(exe ${PROJECT_NAME}
+    SOURCES
+        src/daemon.cpp
+        src/include.hpp
+    USES
+        tntdb
+)
+```
