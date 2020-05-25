@@ -33,16 +33,19 @@ function(export_target target)
         COMPATIBILITY SameMajorVersion
     )
 
-    if (EXISTS "${FTY_CMAKE_CMAKE_DIR}/scripts/templates/component.cmake.in")
-        set(templates "${FTY_CMAKE_CMAKE_DIR}/scripts/templates")
+    if (EXISTS "${FTY_CMAKE_CMAKE_DIR}/cmake/templates/")
+        set(templates "${FTY_CMAKE_CMAKE_DIR}/cmake/templates")
     else()
-        set(templates "${CMAKE_CURRENT_LIST_DIR}/scripts/templates")
+        set(templates "${CMAKE_CURRENT_LIST_DIR}/cmake/templates")
     endif()
 
+
+    configure_file(${templates}/package.pc.in ${CMAKE_CURRENT_BINARY_DIR}/${target}.pc @ONLY)
+
     set_target_properties(${target} PROPERTIES
-        INTERFACE_CONF_FILE ${exportCmakeConfig}
+        INTERFACE_CONF_FILE    ${exportCmakeConfig}
         INTERFACE_VERSION_FILE ${exportVersionFile}
-        INTERFACE_PKG_TEMPLATE ${templates}/pkgconfig.in
+        INTERFACE_PKG_FILE     ${CMAKE_CURRENT_BINARY_DIR}/${target}.pc
     )
 
 endfunction()
