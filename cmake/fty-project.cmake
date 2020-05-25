@@ -29,10 +29,6 @@ include(${CMAKE_CURRENT_LIST_DIR}/cmakepackage.cmake)
 # Pkgconfig
 include(${CMAKE_CURRENT_LIST_DIR}/pkgconfig.cmake)
 
-# Clang
-include(${CMAKE_CURRENT_LIST_DIR}/clang.cmake)
-install_clang_files()
-
 include(${CMAKE_CURRENT_LIST_DIR}/target/target.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/target/export.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/target/version.cmake)

@@ -25,7 +25,9 @@ macro(create_target name type output)
             ${arg_CMAKE}
             ${arg_CONFIGS}
         )
-        set_property(TARGET ${name} PROPERTY RUNTIME_OUTPUT_DIRECTORY ${arg_OUTPUT}/bin)
+        if (arg_OUTPUT)
+            set_property(TARGET ${name} PROPERTY RUNTIME_OUTPUT_DIRECTORY ${arg_OUTPUT}/bin)
+        endif()
     elseif("${type}" STREQUAL "static")
         # Setup static library target
         add_library(${name} STATIC
@@ -35,7 +37,9 @@ macro(create_target name type output)
             ${arg_FILES}
             ${arg_CONFIGS}
         )
-        set_property(TARGET ${name} PROPERTY ARCHIVE_OUTPUT_DIRECTORY ${arg_OUTPUT}/lib)
+        if (arg_OUTPUT)
+            set_property(TARGET ${name} PROPERTY ARCHIVE_OUTPUT_DIRECTORY ${arg_OUTPUT}/lib)
+        endif()
     elseif("${type}" STREQUAL "shared")
         # Setup shared library target
         add_library(${name} SHARED
@@ -44,7 +48,9 @@ macro(create_target name type output)
             ${arg_CMAKE}
             ${arg_CONFIGS}
         )
-        set_property(TARGET ${name} PROPERTY LIBRARY_OUTPUT_DIRECTORY ${arg_OUTPUT}/lib)
+        if (arg_OUTPUT)
+            set_property(TARGET ${name} PROPERTY LIBRARY_OUTPUT_DIRECTORY ${arg_OUTPUT}/lib)
+        endif()
     elseif("${type}" STREQUAL "interface")
         # Setup source library target
         add_library(${name} INTERFACE)

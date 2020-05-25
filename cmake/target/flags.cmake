@@ -3,7 +3,8 @@
 function(set_cppflags name flags)
     get_target_property(type ${name} TYPE)
     if (NOT "${type}" STREQUAL "INTERFACE_LIBRARY")
-        target_compile_options(${name} PRIVATE ${WARNINGS_STR})
+        separate_arguments(args NATIVE_COMMAND ${WARNINGS_STR})
+        target_compile_options(${name} PRIVATE ${args})
     endif()
 
     if (${flags})

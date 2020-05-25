@@ -12,7 +12,12 @@ ExternalProject_Add(cxxtools_build
     SOURCE_DIR        "@SRC_DIR@"
     BINARY_DIR        "@BUILD_DIR@"
     PREFIX            "@INSTALL_PREFIX@"
-    CONFIGURE_COMMAND autoreconf -i "@SRC_DIR@" COMMAND "@SRC_DIR@/configure" --prefix "@INSTALL_PREFIX@" --disable-demos --disable-unittest
+    CONFIGURE_COMMAND autoreconf -i "@SRC_DIR@" COMMAND "@SRC_DIR@/configure"
+        CXX=${CMAKE_CXX_COMPILER}
+        CC=${CMAKE_C_COMPILER}
+        --prefix "@INSTALL_PREFIX@"
+        --disable-demos
+        --disable-unittest
     BUILD_COMMAND     make -j @NBJOBS@
     INSTALL_COMMAND   make install
     TEST_COMMAND      ""

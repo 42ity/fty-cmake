@@ -11,11 +11,9 @@ function(add_dependecy name)
         ${ARGN}
     )
 
-    message("1++++ ${args_LIB_OUTPUT}")
     foreach(dep ${args_DEPENDENCIES})
         resolve(${dep})
     endforeach()
-    message("2++++ ${args_LIB_OUTPUT}")
 
     ProcessorCount(NBJOBS)
     if(NBJOBS EQUAL 0)

@@ -93,4 +93,3 @@ else()
   string(REPLACE ";" " " WARNINGS_STR "${GCC_WARNINGS}")
 endif()
 
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${WARNINGS_STR}")
