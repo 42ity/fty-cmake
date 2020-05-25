@@ -105,8 +105,8 @@ macro(resolve lib)
     endif()
 
     if (NOT TARGET ${lib} AND ENABLE_STANDALONE)
-        if (EXISTS ${FTY_PROJECT_CMAKE_DIR}/external/${lib})
-            include(${FTY_PROJECT_CMAKE_DIR}/external/${lib}/${lib}.cmake)
+        if (EXISTS ${FTY_CMAKE_CMAKE_DIR}/external/${lib})
+            include(${FTY_CMAKE_CMAKE_DIR}/external/${lib}/${lib}.cmake)
         endif()
     endif()
 

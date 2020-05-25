@@ -2,11 +2,9 @@
 # Options and default value
 option(BUILD_TESTING "Build tests" OFF)
 option(BUILD_DOC "Build documentation" OFF)
-option(CREATE_PKGCONFIG "Create package config file" OFF)
-option(CREATE_CMAKE_PKG "Create cmake packages" OFF)
-option(ENABLE_STANDALONE "Enable standalone mode" ON)
+option(ENABLE_STANDALONE "Enable standalone mode" OFF)
 
-set(FTY_PROJECT_CMAKE_DIR ${CMAKE_CURRENT_LIST_DIR})
+set(FTY_CMAKE_CMAKE_DIR ${CMAKE_CURRENT_LIST_DIR})
 
 # CMAKE Linux Path
 include(GNUInstallDirs) # Linux variables like CMAKE_INSTALL_LIBDIR
@@ -23,11 +21,7 @@ include(${CMAKE_CURRENT_LIST_DIR}/warnings.cmake)
 # Valgrind
 include(${CMAKE_CURRENT_LIST_DIR}/memcheck.cmake)
 
-# Cmake package
-include(${CMAKE_CURRENT_LIST_DIR}/cmakepackage.cmake)
-
-# Pkgconfig
-include(${CMAKE_CURRENT_LIST_DIR}/pkgconfig.cmake)
+# Raven cmake
 
 include(${CMAKE_CURRENT_LIST_DIR}/target/target.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/target/export.cmake)
@@ -64,12 +58,3 @@ macro(etn_target type name)
 endmacro()
 
 ##############################################################################################################
-
-#if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
-#  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -DDEBUG")
-#  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0")
-#  # For pretty print of file name in traces
-#  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__FILENAME__='\"$(subst ${CMAKE_SOURCE_DIR}/,,$(abspath $<))\"'" )
-#else()
-#  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
-#endif()

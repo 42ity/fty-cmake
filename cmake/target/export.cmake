@@ -33,8 +33,8 @@ function(export_target target)
         COMPATIBILITY SameMajorVersion
     )
 
-    if (EXISTS "${FTY_PROJECT_CMAKE_DIR}/scripts/templates/component.cmake.in")
-        set(templates "${FTY_PROJECT_CMAKE_DIR}/scripts/templates")
+    if (EXISTS "${FTY_CMAKE_CMAKE_DIR}/scripts/templates/component.cmake.in")
+        set(templates "${FTY_CMAKE_CMAKE_DIR}/scripts/templates")
     else()
         set(templates "${CMAKE_CURRENT_LIST_DIR}/scripts/templates")
     endif()
