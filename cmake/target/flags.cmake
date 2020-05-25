@@ -5,6 +5,7 @@ function(set_cppflags name flags)
     if (NOT "${type}" STREQUAL "INTERFACE_LIBRARY")
         separate_arguments(args NATIVE_COMMAND ${WARNINGS_STR})
         target_compile_options(${name} PRIVATE ${args})
+        set_target_properties(${name} PROPERTIES CXX_STANDARD 17)
     endif()
 
     if (${flags})
