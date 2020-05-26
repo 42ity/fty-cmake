@@ -18,8 +18,8 @@ include(${CMAKE_CURRENT_LIST_DIR}/external.cmake)
 # Warnings
 include(${CMAKE_CURRENT_LIST_DIR}/warnings.cmake)
 
-# Valgrind
-include(${CMAKE_CURRENT_LIST_DIR}/memcheck.cmake)
+## Valgrind
+#include(${CMAKE_CURRENT_LIST_DIR}/memcheck.cmake)
 
 # Raven cmake
 

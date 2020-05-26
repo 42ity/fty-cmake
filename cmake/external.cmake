@@ -50,23 +50,26 @@ function(add_dependecy name)
         WORKING_DIRECTORY ${DOWNLOAD_DIR}
     )
 
+    string(REPLACE "::" "-" sName ${name})
+
+
     add_custom_target(
-        ${name}_build
+        ${sName}_build
         DEPENDS ${args_DEPENDENCIES} ${output}
         WORKING_DIRECTORY ${DOWNLOAD_DIR}
     )
 
     # Add cxxtools directly to our build.
     if (NOT TARGET ${name})
-        add_library(${name} INTERFACE)
-        message("add lib ${name} ${output}")
-        add_dependencies(${name} ${name}_build)
-        target_include_directories(${name}
+        add_library(${sName} INTERFACE)
+        add_library(${name} ALIAS ${sName})
+        add_dependencies(${sName} ${sName}_build)
+        target_include_directories(${sName}
             INTERFACE
                 ${INSTALL_PREFIX}/include
         )
         if (args_LIB_OUTPUT)
-            target_link_libraries(${name} INTERFACE ${output})
+            target_link_libraries(${sName} INTERFACE ${output})
         endif()
     endif()
 endfunction()

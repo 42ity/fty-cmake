@@ -26,15 +26,5 @@ etn_target(interface ${PROJECT_NAME}
         cmake/target/install.cmake
         cmake/templates/package.pc.in
 
-        cmake/external/catch2/CMakeLists.txt.in
-        cmake/external/catch2/catch2.cmake
-
-        cmake/external/cxxtools/CMakeLists.txt.in
-        cmake/external/cxxtools/cxxtools.cmake
-
-        cmake/external/googletest/CMakeLists.txt.in
-        cmake/external/googletest/googletest.cmake
-
-        cmake/external/tntdb/CMakeLists.txt.in
-        cmake/external/tntdb/tntdb.cmake
+        cmake/external/*
 )
