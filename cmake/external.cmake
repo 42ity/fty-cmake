@@ -62,7 +62,9 @@ function(add_dependecy name)
     # Add cxxtools directly to our build.
     if (NOT TARGET ${name})
         add_library(${sName} INTERFACE)
-        add_library(${name} ALIAS ${sName})
+        if (NOT ${sName} STREQUAL ${name})
+            add_library(${name} ALIAS ${sName})
+        endif()
         add_dependencies(${sName} ${sName}_build)
         target_include_directories(${sName}
             INTERFACE
