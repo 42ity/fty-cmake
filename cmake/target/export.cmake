@@ -18,7 +18,7 @@ function(export_target target)
         set(exportCmakeConfig ${CMAKE_CURRENT_BINARY_DIR}/${target}-config.cmake)
     endif()
 
-    set(CMAKE_INSTALL_DIR ${CMAKE_INSTALL_DATAROOTDIR}/${target}/cmake)
+    set(CMAKE_INSTALL_DIR ${CMAKE_INSTALL_DATAROOTDIR}/cmake/${target})
 
     configure_package_config_file(
         ${exportCmakeConfigIn}
@@ -33,6 +33,7 @@ function(export_target target)
         COMPATIBILITY SameMajorVersion
     )
 
+message("${FTY_CMAKE_CMAKE_DIR}/templates/")
     if (EXISTS "${FTY_CMAKE_CMAKE_DIR}/templates/")
         set(templates "${FTY_CMAKE_CMAKE_DIR}/templates")
     else()
