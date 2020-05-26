@@ -2,6 +2,7 @@ Source: fty-cmake
 Maintainer: Clement Perrette <clementperrette@eaton.com>
 Build-Depends:
     cmake (>=3.13),
+    pkg-config,
     debhelper (>= 9)
 Standards-Version: 1.0.0
 Section: devel
@@ -11,5 +12,6 @@ Package: fty-cmake-dev
 Architecture: any
 Section: devel
 Depends:
-    cmake (>=3.13)
+    cmake (>=3.13),
+    pkg-config
 Description: CMake helper for fty 
