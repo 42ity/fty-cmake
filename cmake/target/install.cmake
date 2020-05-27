@@ -12,9 +12,11 @@ function(install_target target)
     if ("${type}" STREQUAL "INTERFACE_LIBRARY")
         install_from_target(INTERFACE_HEADERS ${CMAKE_INSTALL_INCLUDEDIR} ${target})
         install_from_target(INTERFACE_CMAKE   ${CMAKE_INSTALL_DATADIR}/cmake/${target} ${target})
+        install_from_target(INTERFACE_CONFIGS ${CMAKE_INSTALL_SYSCONFDIR}/${target} ${target})
     else()
         install_from_target(PUBLIC_HEADERS ${CMAKE_INSTALL_INCLUDEDIR} ${target})
-        install_from_target(PUBLIC_CMAKE ${CMAKE_INSTALL_DATADIR}/cmake/${target} ${target})
+        install_from_target(PUBLIC_CMAKE   ${CMAKE_INSTALL_DATADIR}/cmake/${target} ${target})
+        install_from_target(PUBLIC_CONFIGS ${CMAKE_INSTALL_SYSCONFDIR}/${target} ${target})
     endif()
 
     # install cmake configs

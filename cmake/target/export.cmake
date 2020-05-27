@@ -33,7 +33,6 @@ function(export_target target)
         COMPATIBILITY SameMajorVersion
     )
 
-message("${FTY_CMAKE_CMAKE_DIR}/templates/")
     if (EXISTS "${FTY_CMAKE_CMAKE_DIR}/templates/")
         set(templates "${FTY_CMAKE_CMAKE_DIR}/templates")
     else()
