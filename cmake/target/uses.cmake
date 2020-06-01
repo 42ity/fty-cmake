@@ -4,6 +4,13 @@ function(parse_using name uses public)
     resolve_libs(${uses})
     get_target_property(type ${name} TYPE)
 
+    foreach(lib ${${uses}})
+        get_target_property(includeDirs ${lib} INTERFACE_INCLUDE_DIRECTORIES)
+        if (includeDirs)
+            target_include_directories(${name} SYSTEM PRIVATE ${includeDirs})
+        endif()
+    endforeach(lib)
+
     if("${type}" STREQUAL "STATIC_LIBRARY")
         target_link_libraries(${name} PUBLIC
             ${${uses}}
