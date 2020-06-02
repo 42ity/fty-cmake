@@ -39,7 +39,7 @@ endmacro()
 
 macro(etn_target type name)
     cmake_parse_arguments(args
-        ""
+        "PRIVATE"
         "OUTPUT"
         "SOURCES;USES;INCLUDE_DIRS;PUBLIC;PREPROCESSOR;FLAGS;CMAKE;CONFIGS;USES_PUBLIC"
         ${ARGN}
@@ -51,8 +51,10 @@ macro(etn_target type name)
     parse_using(${name} args_USES args_USES_PUBLIC)
     set_cppflags(${name} args_FLAGS)
     preprocessor(${name} args_PREPROCESSOR)
-    export_target(${name})
-    install_target(${name})
+    if (NOT args_PRIVATE)
+        export_target(${name})
+        install_target(${name})
+    endif()
 
     dump_target(${name})
 endmacro()
