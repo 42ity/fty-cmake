@@ -4,7 +4,7 @@ macro(create_target name type output)
     cmake_parse_arguments(arg
         ""
         "OUTPUT"
-        "SOURCES;PUBLIC;CMAKE;CONFIGS"
+        "SOURCES;PUBLIC;CMAKE;CONFIGS;DATA"
         ${ARGN}
     )
 
@@ -12,14 +12,20 @@ macro(create_target name type output)
     resolveFiles(arg_PUBLIC)
     resolveFiles(arg_CONFIGS)
     resolveFiles(arg_CMAKE)
+    resolveFiles(arg_DATA)
+
+    set(all
+        ${arg_SOURCES}
+        ${arg_PUBLIC}
+        ${arg_CMAKE}
+        ${arg_CONFIGS}
+        ${arg_DATA}
+    )
 
     if ("${type}" STREQUAL "exe")
         # Setup executable target
         add_executable(${name}
-            ${arg_SOURCES}
-            ${arg_PUBLIC}
-            ${arg_CMAKE}
-            ${arg_CONFIGS}
+            ${all}
         )
         if (arg_OUTPUT)
             set_property(TARGET ${name} PROPERTY RUNTIME_OUTPUT_DIRECTORY ${arg_OUTPUT}/bin)
@@ -27,11 +33,7 @@ macro(create_target name type output)
     elseif("${type}" STREQUAL "static")
         # Setup static library target
         add_library(${name} STATIC
-            ${arg_SOURCES}
-            ${arg_PUBLIC}
-            ${arg_CMAKE}
-            ${arg_FILES}
-            ${arg_CONFIGS}
+            ${all}
         )
         if (arg_OUTPUT)
             set_property(TARGET ${name} PROPERTY ARCHIVE_OUTPUT_DIRECTORY ${arg_OUTPUT}/lib)
@@ -39,10 +41,7 @@ macro(create_target name type output)
     elseif("${type}" STREQUAL "shared")
         # Setup shared library target
         add_library(${name} SHARED
-            ${arg_SOURCES}
-            ${arg_PUBLIC}
-            ${arg_CMAKE}
-            ${arg_CONFIGS}
+            ${all}
         )
         if (arg_OUTPUT)
             set_property(TARGET ${name} PROPERTY LIBRARY_OUTPUT_DIRECTORY ${arg_OUTPUT}/lib)
@@ -51,10 +50,7 @@ macro(create_target name type output)
         # Setup source library target
         add_library(${name} INTERFACE)
         add_custom_target(${name}-props
-            SOURCES ${arg_SOURCES}
-                    ${arg_PUBLIC}
-                    ${arg_CMAKE}
-                    ${arg_CONFIGS}
+            SOURCES ${all}
         )
         set_target_properties(${name}-props PROPERTIES INTERFACE_COMPILE_FEATURES -std=c++17)
         if(arg_SOURCES)
@@ -68,56 +64,60 @@ macro(create_target name type output)
 
     # Add public cmake scripts
     if (arg_CMAKE)
-        if ("${type}" STREQUAL "interface")
-            set_target_properties(${name} PROPERTIES
-                INTERFACE_CMAKE "${arg_CMAKE}"
-            )
-        else()
-            set_target_properties(${name} PROPERTIES
-                PUBLIC_CMAKE "${arg_CMAKE}"
-            )
-        endif()
+        set_for_target(${name} CMAKE "${arg_CMAKE}")
     endif()
 
     # Add public headers as public
     if (arg_PUBLIC)
-        if ("${type}" STREQUAL "interface")
-            set_target_properties(${name} PROPERTIES
-                INTERFACE_HEADERS "${arg_PUBLIC}"
-            )
-        else()
-            set_target_properties(${name} PROPERTIES
-                PUBLIC_HEADERS "${arg_PUBLIC}"
-            )
-        endif()
+        set_for_target(${name} HEADERS "${arg_PUBLIC}")
+    endif()
+
+    # Add target data
+    if (arg_DATA)
+        copy_files(${name} "${arg_DATA}")
+        set_for_target(${name} DATA "${arg_DATA}")
     endif()
 
     # Add configs to install
     if (arg_CONFIGS)
-        foreach(file ${arg_CONFIGS})
-            get_filename_component(dir ${file} DIRECTORY)
-            add_custom_command(
-                TARGET ${name}
-                POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/${dir}
-                COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/${file} ${CMAKE_CURRENT_BINARY_DIR}/${file}
-            )
-        endforeach()
-        if ("${type}" STREQUAL "interface")
-            set_target_properties(${name} PROPERTIES
-                INTERFACE_CONFIGS "${arg_CONFIGS}"
-            )
-        else()
-            set_target_properties(${name} PROPERTIES
-                PUBLIC_CONFIGS "${arg_CONFIGS}"
-            )
-        endif()
+        copy_files(${name} "${arg_CONFIGS}")
+        set_for_target(${name} CONFIGS "${arg_CONFIGS}")
     endif()
 
     if (NOT "${type}" STREQUAL "interface")
         set_target_properties(${name} PROPERTIES LINKER_LANGUAGE CXX)
     endif()
 endmacro()
+
+##############################################################################################################
+
+function(set_for_target target prop value)
+    get_target_property(type ${target} TYPE)
+
+    if ("${type}" STREQUAL "INTERFACE_LIBRARY")
+        set_target_properties(${target} PROPERTIES
+            INTERFACE_${prop} "${value}"
+        )
+    else()
+        set_target_properties(${target} PROPERTIES
+            PUBLIC_${prop} "${value}"
+        )
+    endif()
+endfunction()
+
+##############################################################################################################
+
+function(copy_files target files)
+    foreach(file ${files})
+        get_filename_component(dir ${file} DIRECTORY)
+        add_custom_command(
+            TARGET ${target}
+            POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/${dir}
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/${file} ${CMAKE_CURRENT_BINARY_DIR}/${file}
+        )
+    endforeach()
+endfunction()
 
 ##############################################################################################################
 

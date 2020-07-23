@@ -41,11 +41,11 @@ macro(etn_target type name)
     cmake_parse_arguments(args
         "PRIVATE"
         "OUTPUT"
-        "SOURCES;USES;INCLUDE_DIRS;PUBLIC;PREPROCESSOR;FLAGS;CMAKE;CONFIGS;USES_PUBLIC"
+        "SOURCES;USES;INCLUDE_DIRS;PUBLIC;PREPROCESSOR;FLAGS;CMAKE;CONFIGS;USES_PUBLIC;DATA"
         ${ARGN}
     )
 
-    create_target(${name} ${type} OUTPUT ${args_OUTPUT} SOURCES ${args_SOURCES} PUBLIC ${args_PUBLIC} CMAKE ${args_CMAKE} CONFIGS ${args_CONFIGS})
+    create_target(${name} ${type} OUTPUT ${args_OUTPUT} SOURCES ${args_SOURCES} PUBLIC ${args_PUBLIC} CMAKE ${args_CMAKE} CONFIGS ${args_CONFIGS} DATA ${args_DATA})
     setup_includes(${name} args_INCLUDE_DIRS)
     setup_version(${name})
     parse_using(${name} args_USES args_USES_PUBLIC)
