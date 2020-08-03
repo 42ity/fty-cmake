@@ -32,26 +32,31 @@ macro(resolve_lib lib)
         compiler_search_dirs()
     endif()
 
-    find_library(${lib}_lib ${lib} PATHS ${COMPILER_PATHS})
-    if (NOT ${lib}_lib-NOTFOUND)
-        string(TOLOWER ${${lib}_lib} lolib)
-        string(REGEX MATCH "(\\.dll|\\.so)$" shared ${lolib})
-        string(REGEX MATCH "(\\.lib|\\.a)$" static ${lolib})
-        if (shared)
-            add_library(${lib} SHARED IMPORTED)
-            set_target_properties(${lib} PROPERTIES
-                IMPORTED_LOCATION "${${lib}_lib}"
-                INTERFACE_LINK_LIBRARIES "${${lib}_lib}"
-            )
-            set(${lib}_FOUND ON)
-        endif()
-        if (static)
-            add_library(${lib} STATIC IMPORTED)
-            set_target_properties(${lib} PROPERTIES
-                IMPORTED_LOCATION "${${lib}_lib}"
-                INTERFACE_LINK_LIBRARIES "${${lib}_lib}"
-            )
-            set(${lib}_FOUND ON)
+    string(REPLACE "::" ";" split ${lib})
+    list(LENGTH split len)
+
+    if (NOT len EQUAL 2)
+        find_library(${lib}_lib ${lib} PATHS ${COMPILER_PATHS})
+        if (NOT ${lib}_lib-NOTFOUND)
+            string(TOLOWER ${${lib}_lib} lolib)
+            string(REGEX MATCH "(\\.dll|\\.so)$" shared ${lolib})
+            string(REGEX MATCH "(\\.lib|\\.a)$" static ${lolib})
+            if (shared)
+                add_library(${lib} SHARED IMPORTED)
+                set_target_properties(${lib} PROPERTIES
+                    IMPORTED_LOCATION "${${lib}_lib}"
+                    INTERFACE_LINK_LIBRARIES "${${lib}_lib}"
+                )
+                set(${lib}_FOUND ON)
+            endif()
+            if (static)
+                add_library(${lib} STATIC IMPORTED)
+                set_target_properties(${lib} PROPERTIES
+                    IMPORTED_LOCATION "${${lib}_lib}"
+                    INTERFACE_LINK_LIBRARIES "${${lib}_lib}"
+                )
+                set(${lib}_FOUND ON)
+            endif()
         endif()
     endif()
 endmacro()
@@ -111,6 +116,17 @@ macro(resolve lib)
         string(REPLACE "::" "-" libPath ${lib})
         if (EXISTS ${FTY_CMAKE_CMAKE_DIR}/external/${libPath})
             include(${FTY_CMAKE_CMAKE_DIR}/external/${libPath}/build.cmake)
+        else()
+            string(REPLACE "::" ";" split ${lib})
+            list(LENGTH split len)
+
+            if (len EQUAL 2)
+                list(GET split 0 lname)
+                list(GET split 1 lcomp)
+                if (EXISTS ${FTY_CMAKE_CMAKE_DIR}/external/${lname})
+                    include(${FTY_CMAKE_CMAKE_DIR}/external/${lname}/build.cmake)
+                endif()
+            endif()
         endif()
     endif()
 

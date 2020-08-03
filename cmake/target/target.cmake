@@ -35,6 +35,7 @@ macro(create_target name type output)
         add_library(${name} STATIC
             ${all}
         )
+        set_property(TARGET ${name} PROPERTY POSITION_INDEPENDENT_CODE TRUE)
         if (arg_OUTPUT)
             set_property(TARGET ${name} PROPERTY ARCHIVE_OUTPUT_DIRECTORY ${arg_OUTPUT}/lib)
         endif()
@@ -126,6 +127,7 @@ function(setup_includes name includes)
 
     target_include_directories(${name} INTERFACE
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/>
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/>
         $<INSTALL_INTERFACE:include/${name}>
     )
