@@ -12,7 +12,7 @@ function(export_target target)
     if (NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${exportCmakeConfig}.in)
         set(exportCmakeConfigIn ${CMAKE_CURRENT_BINARY_DIR}/${target}-config.cmake.in)
         set(exportCmakeConfig ${CMAKE_CURRENT_BINARY_DIR}/${target}-config.cmake)
-        file(WRITE ${exportCmakeConfigIn} "@PACKAGE_INIT@")
+        file(WRITE ${exportCmakeConfigIn} "@PACKAGE_INIT@\ninclude(\"\${CMAKE_CURRENT_LIST_DIR}/${exportCmakeFile}\")")
     else()
         set(exportCmakeConfigIn ${CMAKE_CURRENT_SOURCE_DIR}/${exportCmakeConfig}.in)
         set(exportCmakeConfig ${CMAKE_CURRENT_BINARY_DIR}/${target}-config.cmake)
@@ -43,6 +43,7 @@ function(export_target target)
     configure_file(${templates}/package.pc.in ${CMAKE_CURRENT_BINARY_DIR}/${target}.pc @ONLY)
 
     set_target_properties(${target} PROPERTIES
+        INTERFACE_EXPORT_FILE  ${exportCmakeFile}
         INTERFACE_CONF_FILE    ${exportCmakeConfig}
         INTERFACE_VERSION_FILE ${exportVersionFile}
         INTERFACE_PKG_FILE     ${CMAKE_CURRENT_BINARY_DIR}/${target}.pc

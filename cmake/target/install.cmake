@@ -3,9 +3,10 @@
 function(install_target target)
     install(
         TARGETS ${target}
-        LIBRARY       DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        RUNTIME       DESTINATION ${CMAKE_INSTALL_BINDIR}
-        ARCHIVE       DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        EXPORT  ${target}-targets
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     )
 
     get_target_property(type ${target} TYPE)
@@ -22,14 +23,23 @@ function(install_target target)
     endif()
 
     # install cmake configs
-    get_target_property(confFile ${target} INTERFACE_CONF_FILE)
-    get_target_property(verFile  ${target} INTERFACE_VERSION_FILE)
+    get_target_property(exportFile ${target} INTERFACE_EXPORT_FILE)
+    get_target_property(confFile   ${target} INTERFACE_CONF_FILE)
+    get_target_property(verFile    ${target} INTERFACE_VERSION_FILE)
 
     if (NOT "${confFile}" STREQUAL "")
         install(FILES
             ${confFile}
             ${verFile}
             DESTINATION ${CMAKE_INSTALL_DATADIR}/cmake/${target}
+        )
+    endif()
+
+    if (NOT "${exportFile}" STREQUAL "")
+        install(
+            EXPORT ${target}-targets
+            DESTINATION ${CMAKE_INSTALL_DATADIR}/cmake/${target}
+            FILE ${exportFile}
         )
     endif()
 

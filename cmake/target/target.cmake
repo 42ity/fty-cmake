@@ -129,7 +129,7 @@ function(setup_includes name includes)
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/>
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/>
-        $<INSTALL_INTERFACE:include/${name}>
+        $<INSTALL_INTERFACE:include/>
     )
 
     if (NOT "${type}" STREQUAL "INTERFACE_LIBRARY")
@@ -196,13 +196,14 @@ function(dump_target name)
             message(STATUS "    Dependencis:")
             max_length(max "${links}")
             foreach(lib ${links})
+                set(out)
                 if (NOT TARGET ${lib})
                     resolve(${lib})
                 endif()
                 get_target_property(libType ${lib} TYPE)
-                if ("${libType}" STREQUAL "SHARED_LIBRARY" OR "${libType}" STREQUAL "STATIC_LIBRARY")
+                if ("${libType}" STREQUAL "SHARED_LIBRARY" OR "${libType}" STREQUAL "STATIC_LIBRARY" OR "${libType}" STREQUAL "UNKNOWN_LIBRARY")
                     get_target_property(out ${lib} IMPORTED_LOCATION)
-                    if (NOT out)
+                    if (CMAKE_BUILD_TYPE AND NOT out)
                         string(TOUPPER ${CMAKE_BUILD_TYPE} up_type)
                         get_target_property(out ${lib} IMPORTED_LOCATION_${up_type})
                     endif()
