@@ -37,7 +37,7 @@ set(MSVC_WARNINGS
             # conversion has been implicitly applied
 )
 
-set(CLANG_WARNINGS
+set(CLANG_BASIC_WARNINGS
     -Wall
     -Wextra # reasonable and standard
     -Wshadow # warn the user if a variable declaration shadows one from a
@@ -53,12 +53,16 @@ set(CLANG_WARNINGS
     -Wpedantic # warn if non-standard C++ is used
     -Wconversion # warn on type conversions that may lose data
     -Wsign-conversion # warn on sign conversions
-    -Wnull-dereference # warn if a null dereference is detected
     -Wdouble-promotion # warn if float is implicit promoted to double
     -Wformat=2 # warn on security issues around functions that format output
                 # (ie printf)
     -Wno-gnu-zero-variadic-macro-arguments
 )
+
+set(CLANG_WARNINGS ${CLANG_BASIC_WARNINGS}
+    -Wnull-dereference # warn if a null dereference is detected
+)
+
 
 if(WARNINGS_AS_ERRORS)
     set(CLANG_WARNINGS ${CLANG_WARNINGS} -Werror)
@@ -74,17 +78,28 @@ set(GCC_CUSTOM_WARNINGS
     # tools such as cppcheck
 )
 
-set(GCC_WARNINGS
-    ${CLANG_WARNINGS}
-    ${GCC_CUSTOM_WARNINGS}
-    -Wmisleading-indentation # warn if identation implies blocks where blocks
-    # do not exist
-    -Wduplicated-cond # warn if if / else chain has duplicated conditions
-    -Wduplicated-branches # warn if if / else branches have duplicated code
-    -Wlogical-op # warn about logical operations being used where bitwise were
-    # probably wanted
-    -Wuseless-cast # warn if you perform a cast to the same type
+if (CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 8.0)
+    set(GCC_WARNINGS
+        ${CLANG_WARNINGS}
+        ${GCC_CUSTOM_WARNINGS}
+        -Wmisleading-indentation # warn if identation implies blocks where blocks
+        # do not exist
+        -Wduplicated-cond # warn if if / else chain has duplicated conditions
+        -Wduplicated-branches # warn if if / else branches have duplicated code
+        -Wlogical-op # warn about logical operations being used where bitwise were
+        # probably wanted
+        -Wuseless-cast # warn if you perform a cast to the same type
 )
+else()
+    set(GCC_WARNINGS
+        ${CLANG_BASIC_WARNINGS}
+        ${GCC_CUSTOM_WARNINGS}
+        # do not exist
+        -Wlogical-op # warn about logical operations being used where bitwise were
+        # probably wanted
+        -Wuseless-cast # warn if you perform a cast to the same type
+)
+endif()
 
 if(MSVC)
   string(REPLACE ";" " " WARNINGS_STR "${MSVC_WARNINGS}")
