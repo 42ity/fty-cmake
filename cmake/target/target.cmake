@@ -4,7 +4,7 @@ macro(create_target name type output)
     cmake_parse_arguments(arg
         ""
         "OUTPUT"
-        "SOURCES;PUBLIC;CMAKE;CONFIGS;DATA"
+        "SOURCES;PUBLIC;CMAKE;CONFIGS;DATA;SYSTEMD"
         ${ARGN}
     )
 
@@ -13,6 +13,7 @@ macro(create_target name type output)
     resolveFiles(arg_CONFIGS)
     resolveFiles(arg_CMAKE)
     resolveFiles(arg_DATA)
+    resolveFiles(arg_SYSTEMD)
 
     set(all
         ${arg_SOURCES}
@@ -20,6 +21,7 @@ macro(create_target name type output)
         ${arg_CMAKE}
         ${arg_CONFIGS}
         ${arg_DATA}
+        ${arg_SYSTEMD}
     )
 
     if ("${type}" STREQUAL "exe")
@@ -83,6 +85,12 @@ macro(create_target name type output)
     if (arg_CONFIGS)
         copy_files(${name} "${arg_CONFIGS}")
         set_for_target(${name} CONFIGS "${arg_CONFIGS}")
+    endif()
+
+    # Add systemd servive files to install
+    if (arg_SYSTEMD)
+        copy_files(${name} "${arg_SYSTEMD}")
+        set_for_target(${name} SYSTEMD "${arg_SYSTEMD}")
     endif()
 
     if (NOT "${type}" STREQUAL "interface")

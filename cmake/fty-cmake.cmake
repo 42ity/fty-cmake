@@ -41,11 +41,20 @@ macro(etn_target type name)
     cmake_parse_arguments(args
         "PRIVATE"
         "OUTPUT"
-        "SOURCES;USES;INCLUDE_DIRS;PUBLIC;PREPROCESSOR;FLAGS;CMAKE;CONFIGS;USES_PUBLIC;DATA"
+        "SOURCES;USES;INCLUDE_DIRS;PUBLIC;PREPROCESSOR;FLAGS;CMAKE;CONFIGS;USES_PUBLIC;DATA;SYSTEMD"
         ${ARGN}
     )
 
-    create_target(${name} ${type} OUTPUT ${args_OUTPUT} SOURCES ${args_SOURCES} PUBLIC ${args_PUBLIC} CMAKE ${args_CMAKE} CONFIGS ${args_CONFIGS} DATA ${args_DATA})
+    create_target(${name} ${type}
+        OUTPUT  ${args_OUTPUT}
+        SOURCES ${args_SOURCES}
+        PUBLIC  ${args_PUBLIC}
+        CMAKE   ${args_CMAKE}
+        CONFIGS ${args_CONFIGS}
+        DATA    ${args_DATA}
+        SYSTEMD ${args_SYSTEMD}
+    )
+
     setup_includes(${name} args_INCLUDE_DIRS)
     setup_version(${name})
     parse_using(${name} args_USES args_USES_PUBLIC)
@@ -57,6 +66,25 @@ macro(etn_target type name)
     endif()
 
     dump_target(${name})
+endmacro()
+
+##############################################################################################################
+
+macro(etn_test name)
+    if (NOT COMMAND ParseAndAddCatchTests)
+        find_package(Catch2 QUIET)
+        if (Catch2)
+            include(Catch)
+        endif()
+    endif()
+
+    etn_target(exe ${name} ${ARGN})
+
+    if (COMMAND ParseAndAddCatchTests)
+        ParseAndAddCatchTests(${name})
+    else()
+        catch_discover_tests(${name})
+    endif()
 endmacro()
 
 ##############################################################################################################
