@@ -20,7 +20,7 @@ function(install_target target)
         install_from_target(PUBLIC_CMAKE   ${CMAKE_INSTALL_DATADIR}/cmake/${target} ${target})
         install_from_target(PUBLIC_CONFIGS ${CMAKE_INSTALL_SYSCONFDIR}/${target} ${target})
         install_from_target(PUBLIC_DATA    ${CMAKE_INSTALL_DATADIR}/${target} ${target})
-        install_from_target(PUBLIC_SYSTEMD ${CMAKE_INSTALL_LIBDIR}/systemd/system/ ${target})
+        install_from_target(PUBLIC_SYSTEMD /usr/lib/systemd/system/ ${target})
     endif()
 
     # install cmake configs
