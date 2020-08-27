@@ -41,9 +41,9 @@ etn_target([type] [target name]
         [private dependencies list] 
     USES_PUBLIC 
         [public dependencies]
-    PUBLIC / PUBLIC_INCLUDE_DIR
+    PUBLIC_INCLUDE_DIR
         [directory of the public include] (relative path from CMakeList folder)
-    PUBLIC_HEADERS 
+    PUBLIC / PUBLIC_HEADERS 
         [public headers] (relative path from PUBLIC_INCLUDE_DIR folder or from CMakeList folder if PUBLIC_INCLUDE_DIR is not defined)
     INCLUDE_DIRS 
         [extra include directories for private use]
@@ -63,7 +63,9 @@ Where type could be:
  * `shared` - shared library
  * `interface` - non binary library, just headers, configs etc
 
-`USES` and `USES_PUBLIC` are dependencies of the project. Firstly system will try to find dependency in the system. 
+`USES`/`USES_PRIVATE` are dependencies of the project for building only.   
+`USES_PUBLIC` are dependencies of the project with are going to be propagated to the projects which use our project.  
+Firstly system will try to find dependency in the system. 
 If it will not found and ENABLE_STANDALONE is ON then will try to find it in `external` projects and will add it to compilation process.
 
 ### Example of the projects
@@ -75,7 +77,7 @@ etn_target(exe ${PROJECT_NAME}
     SOURCES
         src/daemon.cpp
         src/include.hpp
-    USES_PRIVATE
+    USES
         tntdb
 )
 ```
@@ -95,7 +97,7 @@ etn_target(shared ${PROJECT_NAME}
         fty/myPublicClass.hpp
     USES_PRIVATE
         fty-common-log
-    USES_PULIC
+    USES_PUBLIC
         fty-utils
 )
 ```
