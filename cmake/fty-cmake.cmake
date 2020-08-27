@@ -40,10 +40,18 @@ endmacro()
 macro(etn_target type name)
     cmake_parse_arguments(args
         "PRIVATE"
-        "OUTPUT"
-        "SOURCES;USES;INCLUDE_DIRS;PUBLIC;PREPROCESSOR;FLAGS;CMAKE;CONFIGS;USES_PUBLIC;DATA;SYSTEMD"
+        "OUTPUT;PUBLIC_INCLUDE_DIR"
+        "SOURCES;USES;USES_PRIVATE;INCLUDE_DIRS;PUBLIC;PUBLIC_HEADERS;PREPROCESSOR;FLAGS;CMAKE;CONFIGS;USES_PUBLIC;DATA;SYSTEMD"
         ${ARGN}
     )
+
+    if (args_PUBLIC_HEADERS)
+       set(arg_PUBLIC ${args_PUBLIC_HEADERS})
+    endif()
+
+    if (args_USES_PRIVATE)
+       set(args_USES ${args_USES_PRIVATE})
+    endif()
 
     create_target(${name} ${type}
         OUTPUT  ${args_OUTPUT}
@@ -53,9 +61,10 @@ macro(etn_target type name)
         CONFIGS ${args_CONFIGS}
         DATA    ${args_DATA}
         SYSTEMD ${args_SYSTEMD}
+        PUBLIC_INCLUDE_DIR ${args_PUBLIC_INCLUDE_DIR}
     )
 
-    setup_includes(${name} args_INCLUDE_DIRS)
+    setup_includes(${name} args_INCLUDE_DIRS "${args_PUBLIC_INCLUDE_DIR}")
     setup_version(${name})
     parse_using(${name} args_USES args_USES_PUBLIC)
     set_cppflags(${name} args_FLAGS)

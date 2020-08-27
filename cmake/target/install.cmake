@@ -11,12 +11,14 @@ function(install_target target)
 
     get_target_property(type ${target} TYPE)
     if ("${type}" STREQUAL "INTERFACE_LIBRARY")
-        install_from_target(INTERFACE_HEADERS ${CMAKE_INSTALL_INCLUDEDIR} ${target})
+        get_target_property(include_dir ${target} INTERFACE_INCLUDE_DIR)
+        install_from_target(INTERFACE_HEADERS ${CMAKE_INSTALL_INCLUDEDIR} ${target} BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/${include_dir}")
         install_from_target(INTERFACE_CMAKE   ${CMAKE_INSTALL_DATADIR}/cmake/${target} ${target})
         install_from_target(INTERFACE_CONFIGS ${CMAKE_INSTALL_SYSCONFDIR}/${target} ${target})
         install_from_target(INTERFACE_DATA    ${CMAKE_INSTALL_DATADIR}/${target} ${target})
     else()
-        install_from_target(PUBLIC_HEADERS ${CMAKE_INSTALL_INCLUDEDIR} ${target})
+        get_target_property(include_dir ${target} PUBLIC_INCLUDE_DIR)
+        install_from_target(PUBLIC_HEADERS ${CMAKE_INSTALL_INCLUDEDIR} ${target} BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/${include_dir}")
         install_from_target(PUBLIC_CMAKE   ${CMAKE_INSTALL_DATADIR}/cmake/${target} ${target})
         install_from_target(PUBLIC_CONFIGS ${CMAKE_INSTALL_SYSCONFDIR}/${target} ${target})
         install_from_target(PUBLIC_DATA    ${CMAKE_INSTALL_DATADIR}/${target} ${target})
@@ -57,10 +59,24 @@ endfunction()
 ##############################################################################################################
 
 function(install_from_target propname destination target)
+
+    cmake_parse_arguments(arg
+        ""
+        "BASE_DIR"
+        ""
+        ${ARGN}
+    )
+
+    if(NOT arg_BASE_DIR)
+        set(arg_BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+    endif()
+
     get_target_property(what ${target} ${propname})
     if(what)
         foreach(file ${what})
-            get_filename_component(dir ${file} DIRECTORY)
+            file(RELATIVE_PATH buildDirRelFilePath "${arg_BASE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/${file}")
+            get_filename_component(dir ${buildDirRelFilePath} DIRECTORY)
+#           message( "  ${CMAKE_CURRENT_SOURCE_DIR}/${arg_BASE_DIR} >>>> ${dir} >>> ${buildDirRelFilePath}")
             install(FILES ${file} DESTINATION ${destination}/${dir} COMPONENT ${component})
         endforeach()
     endif()

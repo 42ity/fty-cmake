@@ -3,13 +3,13 @@
 macro(create_target name type output)
     cmake_parse_arguments(arg
         ""
-        "OUTPUT"
+        "OUTPUT;PUBLIC_INCLUDE_DIR"
         "SOURCES;PUBLIC;CMAKE;CONFIGS;DATA;SYSTEMD"
         ${ARGN}
     )
 
     resolveFiles(arg_SOURCES)
-    resolveFiles(arg_PUBLIC)
+    resolveFiles(arg_PUBLIC BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/${arg_PUBLIC_INCLUDE_DIR})
     resolveFiles(arg_CONFIGS)
     resolveFiles(arg_CMAKE)
     resolveFiles(arg_DATA)
@@ -71,6 +71,12 @@ macro(create_target name type output)
     endif()
 
     # Add public headers as public
+    if (arg_PUBLIC_INCLUDE_DIR)
+        set_for_target(${name} INCLUDE_DIR "${arg_PUBLIC_INCLUDE_DIR}")
+    else()
+        set_for_target(${name} INCLUDE_DIR "")
+    endif()
+
     if (arg_PUBLIC)
         set_for_target(${name} HEADERS "${arg_PUBLIC}")
     endif()
@@ -130,11 +136,11 @@ endfunction()
 
 ##############################################################################################################
 
-function(setup_includes name includes)
+function(setup_includes name includes include_dir)
     get_target_property(type ${name} TYPE)
 
     target_include_directories(${name} INTERFACE
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/${include_dir}>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/>
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/>
         $<INSTALL_INTERFACE:include/>
@@ -142,7 +148,7 @@ function(setup_includes name includes)
 
     if (NOT "${type}" STREQUAL "INTERFACE_LIBRARY")
         target_include_directories(${name} PRIVATE
-            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/>
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/${include_dir}>
         )
     endif()
 
@@ -256,10 +262,22 @@ function(dump_target name)
 endfunction()
 
 function(resolveFiles list)
+    cmake_parse_arguments(arg
+        ""
+        "BASE_DIR"
+        ""
+        ${ARGN}
+    )
+
+    if(NOT arg_BASE_DIR)
+        set(arg_BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+    endif()
+
     if (NOT "${${list}}" STREQUAL "")
         set(rfiles)
         foreach(mask ${${list}})
-            file(GLOB_RECURSE files ${mask})
+            file(GLOB_RECURSE files ${arg_BASE_DIR}/${mask})
+#           message( "  ${arg_BASE_DIR}/${mask} >>>> ${files}")
             foreach(file ${files})
                 file(RELATIVE_PATH file ${CMAKE_CURRENT_SOURCE_DIR} ${file})
                 list(APPEND rfiles ${file})

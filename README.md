@@ -36,15 +36,17 @@ Target has follow syntax:
 ```
 etn_target([type] [target name] 
     SOURCES 
-        [sources list] 
-    USES 
+        [sources list] (relative path from CMakeList folder / absolute path)
+    USES / USES_PRIVATE
         [private dependencies list] 
     USES_PUBLIC 
         [public dependencies]
+    PUBLIC / PUBLIC_INCLUDE_DIR
+        [directory of the public include] (relative path from CMakeList folder)
+    PUBLIC_HEADERS 
+        [public headers] (relative path from PUBLIC_INCLUDE_DIR folder or from CMakeList folder if PUBLIC_INCLUDE_DIR is not defined)
     INCLUDE_DIRS 
-        [include directories]
-    PUBLIC 
-        [public headers]
+        [extra include directories for private use]
     PREPROCESSOR 
         [preprocessor definitions]
     FLAGS 
@@ -64,13 +66,39 @@ Where type could be:
 `USES` and `USES_PUBLIC` are dependencies of the project. Firstly system will try to find dependency in the system. 
 If it will not found and ENABLE_STANDALONE is ON then will try to find it in `external` projects and will add it to compilation process.
 
-Example of the project:
+### Example of the projects
+
+#### Executable
+A simple executable where src is a subdirectory with the sources and private headers.
 ```
 etn_target(exe ${PROJECT_NAME}
     SOURCES
         src/daemon.cpp
         src/include.hpp
-    USES
+    USES_PRIVATE
         tntdb
 )
 ```
+The executable named from the variable "${PROJECT_NAME}" will be install in ${CMAKE_INSTALL_PREFIX}/bin/${PROJECT_NAME}.
+
+#### Shared library
+A shared library where src is a subdirectory with the sources and private headers, and public_includes/fty the path to the public headers.
+```
+etn_target(shared ${PROJECT_NAME}
+    SOURCES
+        src/myPrivateClass.cpp
+        src/myPrivateClass.h
+        src/myPublicClass.cpp
+    PUBLIC_INCLUDE_DIR
+        public_includes
+    PUBLIC_HEADERS
+        fty/myPublicClass.hpp
+    USES_PRIVATE
+        fty-common-log
+    USES_PULIC
+        fty-utils
+)
+```
+The shared library named "lib${PROJECT_NAME}.so" will be install in "${CMAKE_INSTALL_PREFIX}/lib/${PROJECT_NAME}lib${PROJECT_NAME}.so"  
+The public header named "myPublicClass.hpp" will be install in "${CMAKE_INSTALL_PREFIX}/lib/**fty**/myPublicClass.hpp"  
+All the cmake package information files will be installed in ${CMAKE_INSTALL_PREFIX}/shared/cmake/..    
