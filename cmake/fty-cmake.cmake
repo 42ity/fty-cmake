@@ -46,7 +46,7 @@ macro(etn_target type name)
     )
 
     if (args_PUBLIC_HEADERS)
-       set(arg_PUBLIC ${args_PUBLIC_HEADERS})
+       set(args_PUBLIC ${args_PUBLIC_HEADERS})
     endif()
 
     if (args_USES_PRIVATE)
