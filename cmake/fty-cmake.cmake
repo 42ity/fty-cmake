@@ -29,6 +29,7 @@ include(${CMAKE_CURRENT_LIST_DIR}/target/version.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/target/uses.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/target/flags.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/target/install.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/target/properties.cmake)
 
 ##############################################################################################################
 

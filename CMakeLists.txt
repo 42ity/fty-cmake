@@ -24,7 +24,10 @@ etn_target(interface ${PROJECT_NAME}
         cmake/target/uses.cmake
         cmake/target/version.cmake
         cmake/target/install.cmake
+        cmake/target/properties.cmake
         cmake/templates/package.pc.in
 
         cmake/external/*
 )
+
+etn_configure_file(${PROJECT_NAME})

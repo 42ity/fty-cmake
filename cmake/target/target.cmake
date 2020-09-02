@@ -67,58 +67,42 @@ macro(create_target name type output)
 
     # Add public cmake scripts
     if (arg_CMAKE)
-        set_for_target(${name} CMAKE "${arg_CMAKE}")
+        etn_set_custom_property(${name} CMAKE "${arg_CMAKE}")
     endif()
 
     # Add public headers as public
     if (arg_PUBLIC_INCLUDE_DIR)
-        set_for_target(${name} INCLUDE_DIR "${arg_PUBLIC_INCLUDE_DIR}")
+        etn_set_custom_property(${name} INCLUDE_DIR "${arg_PUBLIC_INCLUDE_DIR}")
     else()
-        set_for_target(${name} INCLUDE_DIR "")
+        etn_set_custom_property(${name} INCLUDE_DIR "")
     endif()
 
     if (arg_PUBLIC)
-        set_for_target(${name} HEADERS "${arg_PUBLIC}")
+        etn_set_custom_property(${name} HEADERS "${arg_PUBLIC}")
     endif()
 
     # Add target data
     if (arg_DATA)
         copy_files(${name} "${arg_DATA}")
-        set_for_target(${name} DATA "${arg_DATA}")
+        etn_set_custom_property(${name} DATA "${arg_DATA}")
     endif()
 
     # Add configs to install
     if (arg_CONFIGS)
         copy_files(${name} "${arg_CONFIGS}")
-        set_for_target(${name} CONFIGS "${arg_CONFIGS}")
+        etn_set_custom_property(${name} CONFIGS "${arg_CONFIGS}")
     endif()
 
     # Add systemd servive files to install
     if (arg_SYSTEMD)
         copy_files(${name} "${arg_SYSTEMD}")
-        set_for_target(${name} SYSTEMD "${arg_SYSTEMD}")
+        etn_set_custom_property(${name} SYSTEMD "${arg_SYSTEMD}")
     endif()
 
     if (NOT "${type}" STREQUAL "interface")
         set_target_properties(${name} PROPERTIES LINKER_LANGUAGE CXX)
     endif()
 endmacro()
-
-##############################################################################################################
-
-function(set_for_target target prop value)
-    get_target_property(type ${target} TYPE)
-
-    if ("${type}" STREQUAL "INTERFACE_LIBRARY")
-        set_target_properties(${target} PROPERTIES
-            INTERFACE_${prop} "${value}"
-        )
-    else()
-        set_target_properties(${target} PROPERTIES
-            PUBLIC_${prop} "${value}"
-        )
-    endif()
-endfunction()
 
 ##############################################################################################################
 

@@ -54,9 +54,16 @@ set(CLANG_BASIC_WARNINGS
     -Wconversion # warn on type conversions that may lose data
     -Wsign-conversion # warn on sign conversions
     -Wdouble-promotion # warn if float is implicit promoted to double
-    -Wformat=2 # warn on security issues around functions that format output
-                # (ie printf)
+    -Wformat=2 # warn on security issues around functions that format output (ie printf)
+    -Weverything
+    -Wno-c++98-compat
+    -Wno-c++98-compat-pedantic
+    -Wno-padded
+    -Wno-exit-time-destructors
+    -Wno-weak-vtables
     -Wno-gnu-zero-variadic-macro-arguments
+    -Wno-unused-macros
+    -Wno-global-constructors
 )
 
 set(CLANG_WARNINGS ${CLANG_BASIC_WARNINGS}
