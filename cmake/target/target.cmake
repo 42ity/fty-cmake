@@ -207,7 +207,7 @@ function(dump_target name)
 
         get_target_property(links ${name} LINK_LIBRARIES)
         if (links)
-            message(STATUS "    Dependencis:")
+            message(STATUS "    Dependencies:")
             max_length(max "${links}")
             foreach(lib ${links})
                 set(out)
