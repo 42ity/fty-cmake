@@ -66,29 +66,3 @@ function(etn_set_custom_property target name value)
         set_target_properties(${target} PROPERTIES TARGET_${name} "${value}")
     endif()
 endfunction()
-
-function(read_target_properties target)
-    execute_process(
-        COMMAND ${CMAKE_COMMAND} --help-property-list
-        OUTPUT_VARIABLE propList
-    )
-
-    string(REPLACE ";" "\\\\;" propList "${propList}")
-    string(REPLACE "\n" ";" propList "${propList}")
-    list(FILTER propList EXCLUDE REGEX "^LOCATION$|^LOCATION_|_LOCATION$")
-    list(REMOVE_DUPLICATES propList)
-
-#    get_target_property(type ${target} TYPE)
-#    if(type STREQUAL "INTERFACE_LIBRARY")
-#    else()
-#    endif()
-
-    foreach(prop ${propList})
-        string(REPLACE "<CONFIG>" "${CMAKE_BUILD_TYPE}" prop ${prop})
-        get_target_property(propval ${target} ${prop})
-        if (propval)
-            get_target_property(propval ${target} ${prop})
-            message ("${tgt} ${prop} = ${propval}")
-        endif()
-    endforeach()
-endfunction()
