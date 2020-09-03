@@ -29,5 +29,3 @@ etn_target(interface ${PROJECT_NAME}
 
         cmake/external/*
 )
-
-etn_configure_file(${PROJECT_NAME})

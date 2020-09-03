@@ -42,13 +42,10 @@ function(export_target target)
 
     configure_file(${templates}/package.pc.in ${CMAKE_CURRENT_BINARY_DIR}/${target}.pc @ONLY)
 
-    set_target_properties(${target} PROPERTIES
-        INTERFACE_EXPORT_FILE  ${exportCmakeFile}
-        INTERFACE_CONF_FILE    ${exportCmakeConfig}
-        INTERFACE_VERSION_FILE ${exportVersionFile}
-        INTERFACE_PKG_FILE     ${CMAKE_CURRENT_BINARY_DIR}/${target}.pc
-    )
-
+    etn_set_custom_property(${target} CMAKE_EXPORT_FILE  ${exportCmakeFile})
+    etn_set_custom_property(${target} CMAKE_CONFIG_FILE  ${exportCmakeConfig})
+    etn_set_custom_property(${target} CMAKE_VERSION_FILE ${exportVersionFile})
+    etn_set_custom_property(${target} CMAKE_PKG_FILE     ${CMAKE_CURRENT_BINARY_DIR}/${target}.pc)
 endfunction()
 
 ##############################################################################################################

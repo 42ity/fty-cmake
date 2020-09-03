@@ -1,34 +1,88 @@
 ##############################################################################################################
 
-function(install_target target)
-    install(
-        TARGETS ${target}
-        EXPORT  ${target}-targets
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+function(etn_install_target target)
+    cmake_parse_arguments(args
+        ""
+        "TARGET_DESTINATION;HEADERS_DESTINATION;CMAKE_DESTINATION;SYSTEMD_DESTINATION;CONFIGS_DESTINATION;DATA_DESTINATION"
+        ""
+        ${ARGN}
     )
 
-    get_target_property(type ${target} TYPE)
-    if ("${type}" STREQUAL "INTERFACE_LIBRARY")
-        get_target_property(include_dir ${target} INTERFACE_INCLUDE_DIR)
-        install_from_target(INTERFACE_HEADERS ${CMAKE_INSTALL_INCLUDEDIR} ${target} BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/${include_dir}")
-        install_from_target(INTERFACE_CMAKE   ${CMAKE_INSTALL_DATADIR}/cmake/${target} ${target})
-        install_from_target(INTERFACE_CONFIGS ${CMAKE_INSTALL_SYSCONFDIR}/${target} ${target})
-        install_from_target(INTERFACE_DATA    ${CMAKE_INSTALL_DATADIR}/${target} ${target})
-    else()
-        get_target_property(include_dir ${target} PUBLIC_INCLUDE_DIR)
-        install_from_target(PUBLIC_HEADERS ${CMAKE_INSTALL_INCLUDEDIR} ${target} BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/${include_dir}")
-        install_from_target(PUBLIC_CMAKE   ${CMAKE_INSTALL_DATADIR}/cmake/${target} ${target})
-        install_from_target(PUBLIC_CONFIGS ${CMAKE_INSTALL_SYSCONFDIR}/${target} ${target})
-        install_from_target(PUBLIC_DATA    ${CMAKE_INSTALL_DATADIR}/${target} ${target})
-        install_from_target(PUBLIC_SYSTEMD /usr/lib/systemd/system/ ${target})
+    set(headersDir ${CMAKE_INSTALL_INCLUDEDIR})
+    set(cmakeDir   ${CMAKE_INSTALL_DATADIR}/cmake/${target})
+    set(systemdDir /usr/lib/systemd/system/)
+    set(configsDir ${CMAKE_INSTALL_SYSCONFDIR}/${target})
+    set(dataDir    ${CMAKE_INSTALL_DATADIR}/${target})
+
+    if (args_HEADERS_DESTINATION)
+        set(headersDir ${args_TARGET_DESTINATION})
     endif()
 
+    if (args_CMAKE_DESTINATION)
+        set(cmakeDir ${args_CMAKE_DESTINATION})
+    endif()
+
+    if (args_SYSTEMD_DESTINATION)
+        set(systemdDir ${args_SYSTEMD_DESTINATION})
+    endif()
+
+    if (args_CONFIGS_DESTINATION)
+        set(configsDir ${args_CONFIGS_DESTINATION})
+    endif()
+
+    if (args_DATA_DESTINATION)
+        set(dataDir ${args_DATA_DESTINATION})
+    endif()
+
+    get_target_property(type ${target} TYPE)
+    if(type STREQUAL "STATIC_LIBRARY")
+        set(dir ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
+        if (args_TARGET_DESTINATION)
+            set(dir ${args_TARGET_DESTINATION})
+        endif()
+        install(
+            TARGETS ${target}
+            EXPORT  ${target}-targets
+            ARCHIVE DESTINATION ${dir}
+        )
+        etn_set_custom_property(${target} INSTALL_DIR "${dir}")
+    elseif(type STREQUAL "EXECUTABLE")
+        set(dir ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
+        if (args_TARGET_DESTINATION)
+            set(dir ${args_TARGET_DESTINATION})
+        endif()
+        install(
+            TARGETS ${target}
+            EXPORT  ${target}-targets
+            RUNTIME DESTINATION ${dir}
+        )
+        etn_set_custom_property(${target} INSTALL_DIR "${dir}")
+    else()
+        set(dir ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
+        if (args_TARGET_DESTINATION)
+            set(dir ${args_TARGET_DESTINATION})
+        endif()
+        install(
+            TARGETS ${target}
+            EXPORT  ${target}-targets
+            DESTINATION ${dir}
+        )
+        etn_set_custom_property(${target} INSTALL_DIR "${dir}")
+        etn_get_custom_property(out ${target} INSTALL_DIR)
+    endif()
+
+    etn_get_custom_property(include_dir ${target} INCLUDE_DIR)
+    install_from_target(HEADERS ${headersDir} ${target} BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/${include_dir}")
+    install_from_target(CMAKE   ${cmakeDir}   ${target})
+    install_from_target(CONFIGS ${configsDir} ${target})
+    install_from_target(DATA    ${dataDir}    ${target})
+    install_from_target(SYSTEMD ${systemdDir} ${target})
+
     # install cmake configs
-    get_target_property(exportFile ${target} INTERFACE_EXPORT_FILE)
-    get_target_property(confFile   ${target} INTERFACE_CONF_FILE)
-    get_target_property(verFile    ${target} INTERFACE_VERSION_FILE)
+    etn_get_custom_property(exportFile ${target} CMAKE_EXPORT_FILE)
+    etn_get_custom_property(confFile   ${target} CMAKE_CONFIG_FILE)
+    etn_get_custom_property(verFile    ${target} CMAKE_VERSION_FILE)
+    etn_get_custom_property(pkgFile    ${target} CMAKE_PKG_FILE)
 
     if (NOT "${confFile}" STREQUAL "")
         install(FILES
@@ -47,13 +101,16 @@ function(install_target target)
     endif()
 
     # install pkg config
-    get_target_property(pkgFile ${target} INTERFACE_PKG_FILE)
     if (NOT "${pkgFile}" STREQUAL "")
         install(FILES
             ${CMAKE_CURRENT_BINARY_DIR}/${target}.pc
             DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig/
         )
     endif()
+
+    etn_set_custom_property(${target} CMAKE_DIR   "${cmakeDir}")
+    etn_set_custom_property(${target} CONFIG_DIR  "${configsDir}")
+    etn_set_custom_property(${target} HEADERS_DIR "${headersDir}")
 endfunction()
 
 ##############################################################################################################
@@ -71,13 +128,17 @@ function(install_from_target propname destination target)
         set(arg_BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
     endif()
 
-    get_target_property(what ${target} ${propname})
+    etn_get_custom_property(what ${target} ${propname})
+
     if(what)
         foreach(file ${what})
-            file(RELATIVE_PATH buildDirRelFilePath "${arg_BASE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/${file}")
-            get_filename_component(dir ${buildDirRelFilePath} DIRECTORY)
-#           message( "  ${CMAKE_CURRENT_SOURCE_DIR}/${arg_BASE_DIR} >>>> ${dir} >>> ${buildDirRelFilePath}")
-            install(FILES ${file} DESTINATION ${destination}/${dir} COMPONENT ${component})
+            if (propname STREQUAL "CONFIGS")
+                install(FILES ${file} DESTINATION ${destination})
+            else()
+                file(RELATIVE_PATH buildDirRelFilePath "${arg_BASE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/${file}")
+                get_filename_component(dir ${buildDirRelFilePath} DIRECTORY)
+                install(FILES ${file} DESTINATION ${destination}/${dir})
+            endif()
         endforeach()
     endif()
 endfunction()

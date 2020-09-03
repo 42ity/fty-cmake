@@ -38,13 +38,41 @@ endmacro()
 
 ##############################################################################################################
 
+# Creates target with name [name] and type [type].
+# where type could be:
+#   exe - regular executable
+#   static - static library
+#   shared - shared library
+#   interface - non binary library, just headers, configs etc
 macro(etn_target type name)
-    cmake_parse_arguments(args
-        "PRIVATE"
-        "OUTPUT;PUBLIC_INCLUDE_DIR"
-        "SOURCES;USES;USES_PRIVATE;INCLUDE_DIRS;PUBLIC;PUBLIC_HEADERS;PREPROCESSOR;FLAGS;CMAKE;CONFIGS;USES_PUBLIC;DATA;SYSTEMD"
-        ${ARGN}
+    set(options
+        PRIVATE             # do not export or install target
     )
+    set(singleArgs
+        OUTPUT              # set runtime output
+        PUBLIC_INCLUDE_DIR  # directory of the public include
+    )
+    set(multiArgs
+        SOURCES             # sources list
+        USES                # private dependencies list
+        USES_PRIVATE        # private dependencies list
+        USES_PUBLIC         # public dependencies list
+        INCLUDE_DIRS        # extra include directories for private use
+        PUBLIC              # public headers
+        PUBLIC_HEADERS      # public headers
+        PREPROCESSOR        # preprocessor definitions
+        FLAGS               # extra compilation flags
+        CMAKE               # extra cmake scripts
+        CONFIGS             # configuration files
+        DATA                # extra data to install
+        SYSTEMD             # systemd configuration scripts
+        TARGET_DESTINATION  # target installation path (override) default: /usr[lib|bin] depends on target type
+        HEADERS_DESTINATION # public headers installation root path (override) default: /usr/include
+        CMAKE_DESTINATION   # extra cmake installation root path (override) default: /usr/share/cmake/[target name]
+        SYSTEMD_DESTINATION # systemd scripts installation root path (override) default: /usr/lib/systemd/system/
+        CONFIGS_DESTINATION # configs installation root path (override) default: /etc/[target name]
+    )
+    cmake_parse_arguments(args "${options}" "${singleArgs}" "${multiArgs}" ${ARGN})
 
     if (args_PUBLIC_HEADERS)
        set(args_PUBLIC ${args_PUBLIC_HEADERS})
@@ -70,9 +98,16 @@ macro(etn_target type name)
     parse_using(${name} args_USES args_USES_PUBLIC)
     set_cppflags(${name} args_FLAGS)
     preprocessor(${name} args_PREPROCESSOR)
+    etn_set_custom_property(${name} PRIVATE "${args_PRIVATE}")
     if (NOT args_PRIVATE)
         export_target(${name})
-        install_target(${name})
+        etn_install_target(${name}
+            TARGET_DESTINATION  ${args_TARGET_DESTINATION}
+            HEADERS_DESTINATION ${args_HEADERS_DESTINATION}
+            CMAKE_DESTINATION   ${args_CMAKE_DESTINATION}
+            SYSTEMD_DESTINATION ${args_SYSTEMD_DESTINATION}
+            CONFIGS_DESTINATION ${args_CONFIGS_DESTINATION}
+        )
     endif()
 
     dump_target(${name})
@@ -88,7 +123,7 @@ macro(etn_test name)
         endif()
     endif()
 
-    etn_target(exe ${name} ${ARGN})
+    etn_target(exe ${name} PRIVATE ${ARGN})
 
     if (COMMAND ParseAndAddCatchTests)
         ParseAndAddCatchTests(${name})
