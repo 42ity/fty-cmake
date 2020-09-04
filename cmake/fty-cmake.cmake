@@ -82,6 +82,13 @@ macro(etn_target type name)
        set(args_USES ${args_USES_PRIVATE})
     endif()
 
+    if (args_USES)
+        resolve_libs(args_USES)
+    endif()
+    if (args_USES_PUBLIC)
+        resolve_libs(args_USES_PUBLIC)
+    endif()
+
     create_target(${name} ${type}
         OUTPUT  ${args_OUTPUT}
         SOURCES ${args_SOURCES}
@@ -93,9 +100,9 @@ macro(etn_target type name)
         PUBLIC_INCLUDE_DIR ${args_PUBLIC_INCLUDE_DIR}
     )
 
+    parse_using(${name} args_USES args_USES_PUBLIC)
     setup_includes(${name} args_INCLUDE_DIRS "${args_PUBLIC_INCLUDE_DIR}")
     setup_version(${name})
-    parse_using(${name} args_USES args_USES_PUBLIC)
     set_cppflags(${name} args_FLAGS)
     preprocessor(${name} args_PREPROCESSOR)
     etn_set_custom_property(${name} PRIVATE "${args_PRIVATE}")
