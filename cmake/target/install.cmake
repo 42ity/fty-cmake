@@ -8,11 +8,11 @@ function(etn_install_target target)
         ${ARGN}
     )
 
-    set(headersDir ${CMAKE_INSTALL_INCLUDEDIR})
-    set(cmakeDir   ${CMAKE_INSTALL_DATADIR}/cmake/${target})
+    set(headersDir ${CMAKE_INSTALL_FULL_INCLUDEDIR})
+    set(cmakeDir   ${CMAKE_INSTALL_FULL_DATADIR}/cmake/${target})
     set(systemdDir /usr/lib/systemd/system/)
-    set(configsDir ${CMAKE_INSTALL_SYSCONFDIR}/${target})
-    set(dataDir    ${CMAKE_INSTALL_DATADIR}/${target})
+    set(configsDir ${CMAKE_INSTALL_FULL_SYSCONFDIR}/${target})
+    set(dataDir    ${CMAKE_INSTALL_FULL_DATADIR}/${target})
 
     if (args_HEADERS_DESTINATION)
         set(headersDir ${args_TARGET_DESTINATION})
@@ -111,6 +111,7 @@ function(etn_install_target target)
     etn_set_custom_property(${target} CMAKE_DIR   "${cmakeDir}")
     etn_set_custom_property(${target} CONFIG_DIR  "${configsDir}")
     etn_set_custom_property(${target} HEADERS_DIR "${headersDir}")
+    etn_set_custom_property(${target} DATA_DIR    "${dataDir}")
 endfunction()
 
 ##############################################################################################################
