@@ -38,13 +38,22 @@ set(MSVC_WARNINGS
 )
 
 set(CLANG_BASIC_WARNINGS
+    -Weverything
+    -Wno-c++98-compat
+    -Wno-c++98-compat-pedantic
+    -Wno-padded
+    -Wno-exit-time-destructors
+    -Wno-weak-vtables
+    -Wno-gnu-zero-variadic-macro-arguments
+    -Wno-unused-macros
+    -Wno-global-constructors
+)
+
+set(GCC_BASIC_WARNINGS
     -Wall
     -Wextra # reasonable and standard
-    -Wshadow # warn the user if a variable declaration shadows one from a
-              # parent context
-    -Wnon-virtual-dtor # warn the user if a class with virtual functions has a
-                        # non-virtual destructor. This helps catch hard to
-                        # track down memory errors
+    -Wshadow # warn the user if a variable declaration shadows one from a parent context
+    -Wnon-virtual-dtor # warn the user if a class with virtual functions has a non-virtual destructor. This helps catch hard to track down memory errors
     -Wold-style-cast # warn for c-style casts
     -Wcast-align # warn for potential performance problem casts
     -Wunused # warn on anything being unused
@@ -54,13 +63,10 @@ set(CLANG_BASIC_WARNINGS
     -Wconversion # warn on type conversions that may lose data
     -Wsign-conversion # warn on sign conversions
     -Wdouble-promotion # warn if float is implicit promoted to double
-    -Wformat=2 # warn on security issues around functions that format output
-                # (ie printf)
-    -Wno-gnu-zero-variadic-macro-arguments
+    -Wformat=2 # warn on security issues around functions that format output (ie printf)
 )
 
 set(CLANG_WARNINGS ${CLANG_BASIC_WARNINGS}
-    -Wnull-dereference # warn if a null dereference is detected
 )
 
 
@@ -80,7 +86,7 @@ set(GCC_CUSTOM_WARNINGS
 
 if (CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 8.0)
     set(GCC_WARNINGS
-        ${CLANG_WARNINGS}
+        ${GCC_BASIC_WARNINGS}
         ${GCC_CUSTOM_WARNINGS}
         -Wmisleading-indentation # warn if identation implies blocks where blocks
         # do not exist
@@ -92,7 +98,7 @@ if (CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 8.0)
 )
 else()
     set(GCC_WARNINGS
-        ${CLANG_BASIC_WARNINGS}
+        ${GCC_BASIC_WARNINGS}
         ${GCC_CUSTOM_WARNINGS}
         # do not exist
         -Wlogical-op # warn about logical operations being used where bitwise were

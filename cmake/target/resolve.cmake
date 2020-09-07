@@ -64,86 +64,105 @@ endmacro()
 ##############################################################################################################
 
 macro(resolve lib)
-    # try out our runtime path
+    cmake_parse_arguments(arg
+        "NOFATAL"
+        ""
+        ""
+        ${ARGN}
+    )
     if (NOT TARGET ${lib})
-        set(${lib}_DIR ${CMAKE_INSTALL_PREFIX}/lib/cmake/${lib})
-        find_package(${lib} QUIET PATHS ${CMAKE_INSTALL_PREFIX} NO_DEFAULT_PATH)
-        unset(${lib}_DIR)
-    endif()
-    if (NOT TARGET ${lib})
-        set(${lib}_DIR ${CMAKE_INSTALL_PREFIX}/lib64/cmake/${lib})
-        find_package(${lib} QUIET PATHS ${CMAKE_INSTALL_PREFIX} NO_DEFAULT_PATH)
-        unset(${lib}_DIR)
-    endif()
-
-    # if lib is with namespace or components
-    if (NOT TARGET ${lib})
-        string(REPLACE "::" ";" split ${lib})
-        list(LENGTH split len)
-
-        if (len EQUAL 2)
-            list(GET split 0 lname)
-            list(GET split 1 lcomp)
-            find_package(${lname} QUIET COMPONENTS ${lcomp} PATHS ${CMAKE_INSTALL_PREFIX}/lib/ ${CMAKE_INSTALL_PREFIX}/lib64/)
-            if (NOT ${lname}${lcomp}_FOUND)
-                find_package(${lname} QUIET PATHS ${CMAKE_INSTALL_PREFIX}/lib/cmake ${CMAKE_INSTALL_PREFIX}lib64/cmake)
-            endif()
+        # try out our runtime path
+        if (NOT TARGET ${lib})
+            set(${lib}_DIR ${CMAKE_INSTALL_PREFIX}/lib/cmake/${lib})
+            find_package(${lib} QUIET PATHS ${CMAKE_INSTALL_PREFIX} NO_DEFAULT_PATH)
+            unset(${lib}_DIR)
         endif()
-    endif()
-
-    # try out standart search
-    if (NOT TARGET ${lib})
-        find_package(${lib} QUIET)
-    endif()
-
-    # Bad, very bad... try out as package
-    if (NOT TARGET ${lib})
-        string(FIND ${lib} "::" isnamespace)
-        if (isnamespace EQUAL -1)
-            resolve_pkg(${lib})
+        if (NOT TARGET ${lib})
+            set(${lib}_DIR ${CMAKE_INSTALL_PREFIX}/lib64/cmake/${lib})
+            find_package(${lib} QUIET PATHS ${CMAKE_INSTALL_PREFIX} NO_DEFAULT_PATH)
+            unset(${lib}_DIR)
         endif()
-    endif()
 
-    # What the hell, try resolve as lib and create target manualy
-    if (NOT TARGET ${lib})
-        string(FIND ${lib} "::" isnamespace)
-        if (isnamespace EQUAL -1)
-            resolve_lib(${lib})
-        endif()
-    endif()
-
-    if (NOT TARGET ${lib} AND ENABLE_STANDALONE)
-        string(REPLACE "::" "-" libPath ${lib})
-        if (EXISTS ${FTY_CMAKE_CMAKE_DIR}/external/${libPath})
-            include(${FTY_CMAKE_CMAKE_DIR}/external/${libPath}/build.cmake)
-        else()
+        # if lib is with namespace or components
+        if (NOT TARGET ${lib})
             string(REPLACE "::" ";" split ${lib})
             list(LENGTH split len)
 
             if (len EQUAL 2)
                 list(GET split 0 lname)
                 list(GET split 1 lcomp)
-                if (EXISTS ${FTY_CMAKE_CMAKE_DIR}/external/${lname})
-                    include(${FTY_CMAKE_CMAKE_DIR}/external/${lname}/build.cmake)
+                find_package(${lname} QUIET COMPONENTS ${lcomp} PATHS ${CMAKE_INSTALL_PREFIX}/lib/ ${CMAKE_INSTALL_PREFIX}/lib64/)
+                if (NOT ${lname}${lcomp}_FOUND)
+                    find_package(${lname} QUIET PATHS ${CMAKE_INSTALL_PREFIX}/lib/cmake ${CMAKE_INSTALL_PREFIX}lib64/cmake)
                 endif()
             endif()
         endif()
-    endif()
 
-    # Give up here... this package is tricky to find
-    if (NOT TARGET ${lib})
-        message(FATAL_ERROR "${lib} not found")
-    endif()
+        # try out standart search
+        if (NOT TARGET ${lib})
+            find_package(${lib} QUIET)
+        endif()
 
-    if (TARGET ${lib})
-        if("${lib}" STREQUAL "Catch2::Catch2")
-            get_target_property(libType ${lib} TYPE)
-            get_target_property(out ${lib} INTERFACE_INCLUDE_DIRECTORIES)
-            list(GET out 0 path)
-            if (EXISTS ${path}/../lib/cmake/Catch2/ParseAndAddCatchTests.cmake)
-                include(${path}/../lib/cmake/Catch2/ParseAndAddCatchTests.cmake)
-            elseif(EXISTS ${FTY_CMAKE_CMAKE_DIR}/external/${libPath}/ParseAndAddCatchTests.cmake)
-                include(${FTY_CMAKE_CMAKE_DIR}/external/${libPath}/ParseAndAddCatchTests.cmake)
+        # Bad, very bad... try out as package
+        if (NOT TARGET ${lib})
+            string(FIND ${lib} "::" isnamespace)
+            if (isnamespace EQUAL -1)
+                resolve_pkg(${lib})
+            endif()
+        endif()
+
+        # What the hell, try resolve as lib and create target manualy
+        if (NOT TARGET ${lib})
+            string(FIND ${lib} "::" isnamespace)
+            if (isnamespace EQUAL -1)
+                resolve_lib(${lib})
+            endif()
+        endif()
+
+        if (NOT TARGET ${lib} AND ENABLE_STANDALONE)
+            string(REPLACE "::" "-" libPath ${lib})
+            if (EXISTS ${FTY_CMAKE_CMAKE_DIR}/external/${libPath})
+                include(${FTY_CMAKE_CMAKE_DIR}/external/${libPath}/build.cmake)
+            else()
+                string(REPLACE "::" ";" split ${lib})
+                list(LENGTH split len)
+
+                if (len EQUAL 2)
+                    list(GET split 0 lname)
+                    list(GET split 1 lcomp)
+                    if (EXISTS ${FTY_CMAKE_CMAKE_DIR}/external/${lname})
+                        include(${FTY_CMAKE_CMAKE_DIR}/external/${lname}/build.cmake)
+                    endif()
+                endif()
+            endif()
+        endif()
+
+        # Give up here... this package is tricky to find
+        if (NOT TARGET ${lib} AND NOT ${arg_NOFATAL})
+            message(FATAL_ERROR "${lib} not found")
+        endif()
+
+        if (TARGET ${lib})
+            if("${lib}" STREQUAL "Catch2::Catch2")
+                get_target_property(libType ${lib} TYPE)
+                get_target_property(out ${lib} INTERFACE_INCLUDE_DIRECTORIES)
+                list(GET out 0 path)
+                if (EXISTS ${path}/../lib/cmake/Catch2/ParseAndAddCatchTests.cmake)
+                    include(${path}/../lib/cmake/Catch2/ParseAndAddCatchTests.cmake)
+                elseif(EXISTS ${FTY_CMAKE_CMAKE_DIR}/external/${libPath}/ParseAndAddCatchTests.cmake)
+                    include(${FTY_CMAKE_CMAKE_DIR}/external/${libPath}/ParseAndAddCatchTests.cmake)
+                endif()
+            endif()
+        endif()
+
+        if (TARGET ${lib})
+            get_target_property(deps ${lib} INTERFACE_LINK_LIBRARIES)
+            if (deps)
+                foreach(dep ${deps})
+                    if (NOT IS_ABSOLUTE ${dep})
+                        resolve(${dep} NOFATAL)
+                    endif()
+                endforeach()
             endif()
         endif()
     endif()
