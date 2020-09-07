@@ -123,18 +123,16 @@ endmacro()
 ##############################################################################################################
 
 macro(etn_test name)
-    if (BUILD_TESTING)
-        include(CTest)
-        enable_testing()
-        if (NOT COMMAND catch_discover_tests)
-            find_package(Catch2 REQUIRED)
-            include(Catch)
-        endif()
+    include(CTest)
+    enable_testing()
 
-        etn_target(exe ${name} PRIVATE ${ARGN})
-
-        catch_discover_tests(${name})
+    if (NOT COMMAND ParseAndAddCatchTests)
+        find_package(Catch2 REQUIRED)
+        include(ParseAndAddCatchTests)
     endif()
+
+    etn_target(exe ${name} PRIVATE ${ARGN})
+    ParseAndAddCatchTests(${name})
 endmacro()
 
 ##############################################################################################################
