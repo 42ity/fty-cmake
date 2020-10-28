@@ -19,11 +19,6 @@ function(parse_using name uses public)
             ${${uses}}
             ${${public}}
         )
-    elseif("${type}" STREQUAL "STATIC_LIBRARY")
-        target_link_libraries(${name} PUBLIC
-            ${${uses}}
-            ${${public}}
-        )
     else()
         if (NOT "${${public}}" STREQUAL "")
             target_link_libraries(${name} PUBLIC

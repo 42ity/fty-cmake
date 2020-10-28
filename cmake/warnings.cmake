@@ -44,7 +44,7 @@ set(CLANG_BASIC_WARNINGS
     -Wno-padded
     -Wno-exit-time-destructors
     -Wno-weak-vtables
-    -Wno-gnu-zero-variadic-macro-arguments
+    #-Wno-gnu-zero-variadic-macro-arguments
     -Wno-unused-macros
     -Wno-global-constructors
 )
