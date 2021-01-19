@@ -39,13 +39,16 @@ function(export_target target)
         set(templates "${CMAKE_CURRENT_LIST_DIR}/cmake/templates")
     endif()
 
-
-    configure_file(${templates}/package.pc.in ${CMAKE_CURRENT_BINARY_DIR}/${target}.pc @ONLY)
-
     etn_set_custom_property(${target} CMAKE_EXPORT_FILE  ${exportCmakeFile})
     etn_set_custom_property(${target} CMAKE_CONFIG_FILE  ${exportCmakeConfig})
     etn_set_custom_property(${target} CMAKE_VERSION_FILE ${exportVersionFile})
-    etn_set_custom_property(${target} CMAKE_PKG_FILE     ${CMAKE_CURRENT_BINARY_DIR}/${target}.pc)
+
+    get_target_property(type ${target} TYPE)
+    if (NOT type STREQUAL "EXECUTABLE")
+        set(TARGET ${target})
+        configure_file(${templates}/package.pc.in ${CMAKE_CURRENT_BINARY_DIR}/${target}.pc @ONLY)
+        etn_set_custom_property(${target} CMAKE_PKG_FILE     ${CMAKE_CURRENT_BINARY_DIR}/${target}.pc)
+    endif()
 endfunction()
 
 ##############################################################################################################
