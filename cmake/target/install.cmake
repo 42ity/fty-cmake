@@ -115,6 +115,7 @@ function(etn_install_target target)
                 ${CMAKE_INSTALL_FULL_LIBDIR}/pkgconfig/lib${target}.pc \
                 )"
             )
+            install(CODE "message(\"-- Created symlink: ${CMAKE_INSTALL_FULL_LIBDIR}/pkgconfig/lib${target}.pc -> ${CMAKE_INSTALL_FULL_LIBDIR}/pkgconfig/${target}.pc\")")
 
         endif()
     endif()
