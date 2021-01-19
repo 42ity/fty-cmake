@@ -84,28 +84,37 @@ function(etn_install_target target)
     etn_get_custom_property(verFile    ${target} CMAKE_VERSION_FILE)
     etn_get_custom_property(pkgFile    ${target} CMAKE_PKG_FILE)
 
-    if (NOT "${confFile}" STREQUAL "")
-        install(FILES
-            ${confFile}
-            ${verFile}
-            DESTINATION ${CMAKE_INSTALL_DATADIR}/cmake/${target}
-        )
-    endif()
+    #we do not install cmake package and pkgconfig if target is EXECUTABLE
+    if (NOT type STREQUAL "EXECUTABLE")
 
-    if (NOT "${exportFile}" STREQUAL "")
-        install(
-            EXPORT ${target}-targets
-            DESTINATION ${CMAKE_INSTALL_DATADIR}/cmake/${target}
-            FILE ${exportFile}
-        )
-    endif()
-
-    # install pkg config
-    if (NOT "${pkgFile}" STREQUAL "")
-        install(FILES
-            ${CMAKE_CURRENT_BINARY_DIR}/${target}.pc
-            DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig/
-        )
+        if (NOT "${confFile}" STREQUAL "")
+            install(FILES
+                ${confFile}
+                ${verFile}
+                DESTINATION ${CMAKE_INSTALL_DATADIR}/cmake/${target}
+            )
+        endif()
+    
+        if (NOT "${exportFile}" STREQUAL "")
+            install(
+                EXPORT ${target}-targets
+                DESTINATION ${CMAKE_INSTALL_DATADIR}/cmake/${target}
+                FILE ${exportFile}
+            )
+        endif()
+    
+        # install pkg config
+        if (NOT "${pkgFile}" STREQUAL "")
+            install(FILES
+                ${CMAKE_CURRENT_BINARY_DIR}/${target}.pc
+                DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig/
+            )
+            install(FILES
+                ${CMAKE_CURRENT_BINARY_DIR}/${target}.pc
+                DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig/
+                RENAME lib${target}.pc
+            )
+        endif()
     endif()
 
     etn_set_custom_property(${target} CMAKE_DIR   "${cmakeDir}")
