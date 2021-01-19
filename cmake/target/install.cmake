@@ -111,7 +111,8 @@ function(etn_install_target target)
             )
             install(FILES
                 ${CMAKE_CURRENT_BINARY_DIR}/${target}.pc
-                DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig/lib${target}.pc
+                DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig/
+                RENAME lib${target}.pc
             )
         endif()
     endif()
