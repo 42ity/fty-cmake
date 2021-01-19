@@ -109,14 +109,10 @@ function(etn_install_target target)
                 ${CMAKE_CURRENT_BINARY_DIR}/${target}.pc
                 DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig/
             )
-            install(CODE "execute_process( \
-                COMMAND ${CMAKE_COMMAND} -E create_symlink \
-                ${CMAKE_INSTALL_FULL_LIBDIR}/pkgconfig/${target}.pc \
-                ${CMAKE_INSTALL_FULL_LIBDIR}/pkgconfig/lib${target}.pc \
-                )"
+            install(FILES
+                ${CMAKE_CURRENT_BINARY_DIR}/${target}.pc
+                DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig/lib${target}.pc
             )
-            install(CODE "message(\"-- Created symlink: ${CMAKE_INSTALL_FULL_LIBDIR}/pkgconfig/lib${target}.pc -> ${CMAKE_INSTALL_FULL_LIBDIR}/pkgconfig/${target}.pc\")")
-
         endif()
     endif()
 
