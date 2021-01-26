@@ -3,6 +3,23 @@
 # Standalone mode manages dependencies with externals
 include(ProcessorCount)
 
+function(getAllTargets var)
+    set(targets)
+    getAllTargetsRecursive(targets ${CMAKE_SOURCE_DIR})
+    set(${var} ${targets} PARENT_SCOPE)
+endfunction()
+
+macro(getAllTargetsRecursive targets dir)
+    get_property(subdirectories DIRECTORY ${dir} PROPERTY SUBDIRECTORIES)
+    foreach(subdir ${subdirectories})
+        getAllTargetsRecursive(${targets} ${subdir})
+    endforeach()
+
+    get_property(currentTargets DIRECTORY ${dir} PROPERTY BUILDSYSTEM_TARGETS)
+    list(APPEND ${targets} ${currentTargets})
+endmacro()
+
+
 function(add_dependecy name)
     cmake_parse_arguments(args
         ""
@@ -25,6 +42,26 @@ function(add_dependecy name)
     set(SRC_DIR        ${CMAKE_BINARY_DIR}/deps-src/${name})
     set(BUILD_DIR      ${CMAKE_BINARY_DIR}/deps-build/${name})
     set(DOWNLOAD_DIR   ${CMAKE_BINARY_DIR}/deps-download/${name})
+
+    getAllTargets(allTargets)
+    set(EXTERN_CMAKE_FLAGS)
+    foreach(tar ${allTargets})
+        unset(dir)
+        if(NOT (tar MATCHES "-props$" OR tar MATCHES "_build$"))
+            get_target_property(type ${tar} TYPE)
+            if ("${type}" STREQUAL "INTERFACE_LIBRARY")
+                if (TARGET ${tar}-props)
+                    get_target_property(dir ${tar}-props BINARY_DIR)
+                endif()
+            else()
+                get_target_property(dir ${tar} BINARY_DIR)
+            endif()
+
+            if (dir)
+                set(EXTERN_CMAKE_FLAGS "${EXTERN_CMAKE_FLAGS} -D${tar}_DIR=${dir}")
+            endif()
+        endif()
+    endforeach()
 
     configure_file(${CMAKE_CURRENT_LIST_DIR}/CMakeLists.txt.in
         ${DOWNLOAD_DIR}/CMakeLists.txt
@@ -52,7 +89,6 @@ function(add_dependecy name)
 
     string(REPLACE "::" "-" sName ${name})
 
-
     add_custom_target(
         ${sName}_build
         DEPENDS ${args_DEPENDENCIES} ${output}
@@ -71,6 +107,7 @@ function(add_dependecy name)
                 ${INSTALL_PREFIX}/include
         )
         if (args_LIB_OUTPUT)
+            #message("++++ ${sName} -> ${output}")
             target_link_libraries(${sName} INTERFACE ${output})
         endif()
     endif()

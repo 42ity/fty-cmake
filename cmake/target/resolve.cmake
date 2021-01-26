@@ -71,6 +71,9 @@ macro(resolve lib)
         ${ARGN}
     )
     if (NOT TARGET ${lib})
+        if (${lib}_DIR)
+            find_package(${lib} QUIET PATHS ${CMAKE_INSTALL_PREFIX} NO_DEFAULT_PATH)
+        endif()
         # try out our runtime path
         if (NOT TARGET ${lib})
             set(${lib}_DIR ${CMAKE_INSTALL_PREFIX}/lib/cmake/${lib})
@@ -118,7 +121,6 @@ macro(resolve lib)
                 resolve_lib(${lib})
             endif()
         endif()
-
         if (NOT TARGET ${lib} AND ENABLE_STANDALONE)
             string(REPLACE "::" "-" libPath ${lib})
             if (EXISTS ${FTY_CMAKE_CMAKE_DIR}/external/${libPath})

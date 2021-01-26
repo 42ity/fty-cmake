@@ -64,6 +64,7 @@ set(GCC_BASIC_WARNINGS
     -Wsign-conversion # warn on sign conversions
     -Wdouble-promotion # warn if float is implicit promoted to double
     -Wformat=2 # warn on security issues around functions that format output (ie printf)
+    -Wno-redundant-move
 )
 
 set(CLANG_WARNINGS ${CLANG_BASIC_WARNINGS}
