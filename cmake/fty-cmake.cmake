@@ -129,13 +129,14 @@ macro(etn_test name)
     include(CTest)
     enable_testing()
 
-    if (NOT COMMAND ParseAndAddCatchTests)
+    if (NOT COMMAND catch_discover_tests)
         find_package(Catch2 REQUIRED)
-        include(ParseAndAddCatchTests)
+        include(Catch)
+        #include(catch_discover_tests)
     endif()
 
     etn_target(exe ${name} PRIVATE ${ARGN})
-    ParseAndAddCatchTests(${name})
+    catch_discover_tests(${name})
 endmacro()
 
 ##############################################################################################################

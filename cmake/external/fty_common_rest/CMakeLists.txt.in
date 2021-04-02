@@ -11,9 +11,9 @@ ExternalProject_Add(fty_common_rest
     CONFIGURE_COMMAND autoreconf -i "@SRC_DIR@" COMMAND "@SRC_DIR@/configure"
                         CXX=${CMAKE_CXX_COMPILER}
                         CC=${CMAKE_C_COMPILER}
-                        PKG_CONFIG_PATH=@INSTALL_PREFIX@/lib/pkgconfig
-                        CXXFLAGS=-I@INSTALL_PREFIX@/include
-                        LDFLAGS=-L@INSTALL_PREFIX@/lib
+                        PKG_CONFIG_PATH=@INSTALL_PREFIX@/lib/pkgconfig:@PKG_PATH@
+                        "CXXFLAGS=-I@INSTALL_PREFIX@/include @EXTERN_CXXFLAGS@"
+                        "LDFLAGS=-L@INSTALL_PREFIX@/lib @EXTERN_LDFLAGS@"
                         --prefix=@INSTALL_PREFIX@
     BUILD_COMMAND     make -j @NBJOBS@
     INSTALL_COMMAND   make install
