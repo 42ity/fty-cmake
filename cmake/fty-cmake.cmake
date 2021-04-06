@@ -47,7 +47,7 @@ endmacro()
 #   static - static library
 #   shared - shared library
 #   interface - non binary library, just headers, configs etc
-macro(etn_target type name)
+function(etn_target type name)
     set(options
         PRIVATE             # do not export or install target
     )
@@ -121,22 +121,24 @@ macro(etn_target type name)
     endif()
 
     dump_target(${name})
-endmacro()
+endfunction()
 
 ##############################################################################################################
 
 macro(etn_test name)
-    include(CTest)
-    enable_testing()
+    if (BUILD_TESTING)
+        include(CTest)
+        enable_testing()
 
-    if (NOT COMMAND catch_discover_tests)
-        find_package(Catch2 REQUIRED)
-        include(Catch)
-        #include(catch_discover_tests)
+        if (NOT COMMAND catch_discover_tests)
+            find_package(Catch2 REQUIRED)
+            include(Catch)
+            #include(catch_discover_tests)
+        endif()
+
+        etn_target(exe ${name} PRIVATE ${ARGN})
+        catch_discover_tests(${name})
     endif()
-
-    etn_target(exe ${name} PRIVATE ${ARGN})
-    catch_discover_tests(${name})
 endmacro()
 
 ##############################################################################################################

@@ -92,3 +92,148 @@ macro(etn_coverage target)
     get_property(tars DIRECTORY ${CMAKE_SOURCE_DIR} PROPERTY COVERAGE_TARGETS)
     set_property(DIRECTORY ${CMAKE_SOURCE_DIR} PROPERTY COVERAGE_TARGETS ${tars})
 endmacro()
+
+macro(etn_test_target target)
+    if (BUILD_TESTING)
+        include(CTest)
+        enable_testing()
+
+        if (NOT COMMAND catch_discover_tests)
+            find_package(Catch2 REQUIRED)
+            include(Catch)
+            #include(catch_discover_tests)
+        endif()
+
+        get_target_property(type ${target} TYPE)
+        if (type STREQUAL "INTERFACE_LIBRARY")
+            get_target_property(sourceFiles ${target}-props SOURCES)
+            get_target_property(linkLibs ${target} INTERFACE_LINK_LIBRARIES)
+            get_target_property(includeDirs ${target}-props INCLUDE_DIRECTORIES)
+            get_target_property(compileDefinitions ${target}-props COMPILE_DEFINITIONS)
+            get_target_property(compileOptions ${target}-props COMPILE_OPTIONS)
+            get_target_property(_srcDir ${target}-props SOURCE_DIR)
+            get_target_property(_inc ${target}-props INTERFACE_INCLUDE_DIR)
+        else()
+            get_target_property(sourceFiles ${target} SOURCES)
+            get_target_property(linkLibs ${target} LINK_LIBRARIES)
+            get_target_property(includeDirs ${target} INCLUDE_DIRECTORIES)
+            get_target_property(compileDefinitions ${target} COMPILE_DEFINITIONS)
+            get_target_property(compileOptions ${target} COMPILE_OPTIONS)
+            get_target_property(_srcDir ${target} SOURCE_DIR)
+            get_target_property(_inc ${target} TARGET_INCLUDE_DIR)
+        endif()
+
+        if (_srcDir AND NOT _inc)
+            set(inc ${_srcDir})
+        endif()
+        if (_inc AND _srcDir)
+            set(inc ${_srcDir}/${_inc})
+        endif()
+
+        cmake_parse_arguments(args "" "SUBDIR" "SOURCES;USES;PREPROCESSOR;FLAGS;CONFIGS" ${ARGN})
+
+        # create unit test
+        message(INFO "Creating ${target}-test target")
+        etn_target(exe ${target}-test PRIVATE
+            SOURCES
+                ${args_SOURCES}
+                ${sourceFiles}
+            USES
+                ${args_USES}
+                Catch2::Catch2
+            FLAGS
+                ${args_FLAGS}
+                ${compileOptions}
+            PREPROCESSOR
+                ${args_PREPROCESSOR}
+                ${compileDefinitions}
+            INCLUDE_DIRS
+                ${inc}
+        )
+
+        if (linkLibs)
+            target_link_libraries(${target}-test PRIVATE ${linkLibs})
+        endif()
+
+        catch_discover_tests(${target}-test)
+
+        find_program(LCOV lcov)
+        find_program(GCOVR gcovr)
+        find_program(GENHTML genhtml)
+
+        if (NOT LCOV)
+            message("lcov was not found, please do `apt install lcov`")
+        endif()
+
+        if (NOT GCOVR)
+            message("gcovr was not found, please do `apt install gcovr`")
+        endif()
+
+        if (NOT GENHTML)
+            message("genhtml was not found")
+        endif()
+
+        if (LCOV AND GENHTML OR GCOVR)
+            # create coverage
+            message(INFO "Creating ${target}-coverage target")
+            etn_target(exe ${target}-coverage PRIVATE
+                SOURCES
+                    ${args_SOURCES}
+                    ${sourceFiles}
+                USES
+                    ${args_USES}
+                    Catch2::Catch2
+                    gcov
+                FLAGS
+                    ${args_FLAGS}
+                    ${compileOptions}
+                PREPROCESSOR
+                    ${args_PREPROCESSOR}
+                    ${compileDefinitions}
+                INCLUDE_DIRS
+                    ${inc}
+            )
+
+            target_compile_options(${target}-coverage PRIVATE -coverage -g -O0 -fno-inline -fno-inline-small-functions -fno-default-inline -fprofile-arcs -ftest-coverage)
+            target_link_options(${target}-coverage PRIVATE -coverage)
+            if (linkLibs)
+                target_link_libraries(${target}-coverage PRIVATE ${linkLibs})
+            endif()
+
+            set_target_properties(${target}-coverage PROPERTIES EXCLUDE_FROM_ALL TRUE)
+
+            set(out ${CMAKE_BINARY_DIR}/capture/${target})
+            set(base ${CMAKE_CURRENT_SOURCE_DIR})
+            set(work ${CMAKE_CURRENT_BINARY_DIR})
+            if (args_SUBDIR)
+                set(base ${base}/${args_SUBDIR})
+            endif()
+
+            if (LCOV AND GENHTML)
+                file(APPEND ${CMAKE_BINARY_DIR}/coverage-local.targets "
+                    cmake --build ${CMAKE_BINARY_DIR} --target ${target}-coverage
+                    ${LCOV} -d ${work}  -b ${base} --zerocounters
+                    ${LCOV} -c -i -d ${work} -b ${base} -o ${out}/${target}.base
+                    ${CMAKE_CURRENT_BINARY_DIR}/${target}-coverage
+                    ${LCOV} -d ${work} -b ${base} --capture --rc lcov_branch_coverage=1 --output-file ${out}/${target}.capture
+                    ${LCOV} -a ${out}/${target}.base -a ${out}/${target}.capture --output-file ${out}/${target}.total
+                    ${LCOV} --remove ${out}/${target}.total --output-file ${out}/${target}.info '/usr/*'
+                    ${GENHTML} --demangle-cpp --ignore-errors source -o ${out}/${target} ${out}/${target}.info
+                ")
+            endif()
+
+            if (GCOVR)
+                file(APPEND ${CMAKE_BINARY_DIR}/coverage.targets "
+                    cmake --build ${CMAKE_BINARY_DIR} --target ${target}-coverage
+                    ${CMAKE_CURRENT_BINARY_DIR}/${target}-coverage
+                    ${GCOVR} -x -r ${base} --xml-pretty --print-summary --object-directory ${work} -o ${out}/${target}.xml -f ${_srcDir}
+                ")
+            endif()
+
+            get_property(tars DIRECTORY ${CMAKE_SOURCE_DIR} PROPERTY COVERAGE_TARGETS)
+            set_property(DIRECTORY ${CMAKE_SOURCE_DIR} PROPERTY COVERAGE_TARGETS ${tars})
+        endif()
+
+    endif()
+endmacro()
+
