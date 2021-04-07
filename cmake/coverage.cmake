@@ -209,6 +209,8 @@ macro(etn_test_target target)
                 set(base ${base}/${args_SUBDIR})
             endif()
 
+            file(MAKE_DIRECTORY ${out})
+
             if (LCOV AND GENHTML)
                 file(APPEND ${CMAKE_BINARY_DIR}/coverage-local.targets "
                     cmake --build ${CMAKE_BINARY_DIR} --target ${target}-coverage
