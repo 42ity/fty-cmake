@@ -101,10 +101,6 @@ etn_target(shared ${PROJECT_NAME}
         fty-utils
 )
 ```
-The shared library named "lib${PROJECT_NAME}.so" will be installed in "${CMAKE_INSTALL_PREFIX}/lib/${PROJECT_NAME}lib${PROJECT_NAME}.so"
+The shared library named "lib${PROJECT_NAME}.so" will be install in "${CMAKE_INSTALL_PREFIX}/lib/${PROJECT_NAME}lib${PROJECT_NAME}.so"  
 The public header named "myPublicClass.hpp" will be install in "${CMAKE_INSTALL_PREFIX}/lib/**fty**/myPublicClass.hpp"  
 All the cmake package information files will be installed in ${CMAKE_INSTALL_PREFIX}/shared/cmake/..    
-A pkgconfig file will be generated, if not user provided, and installed in "${CMAKE_INSTALL_PREFIX}/lib/${PROJECT_NAME}lib${PROJECT_NAME}.pc"
-
-Note that if neither PUBLIC_INCLUDE_DIR nor PUBLIC_HEADERS is used, it is assumed that this shared library is not public.
-Hence cmake packaging information and pkgconfig file will not be generated nor installed.
