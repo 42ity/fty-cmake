@@ -93,7 +93,7 @@ macro(create_target name type output)
         etn_set_custom_property(${name} CONFIGS "${arg_CONFIGS}")
     endif()
 
-    # Add systemd service files to install
+    # Add systemd servive files to install
     if (arg_SYSTEMD)
         copy_files(${name} "${arg_SYSTEMD}")
         etn_set_custom_property(${name} SYSTEMD "${arg_SYSTEMD}")
