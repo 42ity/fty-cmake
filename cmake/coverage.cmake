@@ -135,6 +135,8 @@ macro(etn_test_target target)
         # create unit test
         message(INFO "Creating ${target}-test target")
         etn_target(exe ${target}-test PRIVATE
+            CONFIGS
+                ${args_CONFIGS}
             SOURCES
                 ${args_SOURCES}
                 ${sourceFiles}
@@ -177,6 +179,8 @@ macro(etn_test_target target)
             # create coverage
             message(INFO "Creating ${target}-coverage target")
             etn_target(exe ${target}-coverage PRIVATE
+                CONFIGS
+                    ${args_CONFIGS}
                 SOURCES
                     ${args_SOURCES}
                     ${sourceFiles}
