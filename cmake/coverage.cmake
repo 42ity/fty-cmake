@@ -133,7 +133,7 @@ macro(etn_test_target target)
         cmake_parse_arguments(args "" "SUBDIR" "SOURCES;USES;PREPROCESSOR;FLAGS;CONFIGS" ${ARGN})
 
         # create unit test
-        message(INFO "Creating ${target}-test target")
+        message(STATUS "Creating ${target}-test target")
         etn_target(exe ${target}-test PRIVATE
             CONFIGS
                 ${args_CONFIGS}
@@ -177,7 +177,7 @@ macro(etn_test_target target)
 
         if (LCOV AND GENHTML OR GCOVR)
             # create coverage
-            message(INFO "Creating ${target}-coverage target")
+            message(STATUS "Creating ${target}-coverage target")
             etn_target(exe ${target}-coverage PRIVATE
                 CONFIGS
                     ${args_CONFIGS}
@@ -198,7 +198,11 @@ macro(etn_test_target target)
                     ${inc}
             )
 
-            target_compile_options(${target}-coverage PRIVATE -coverage -g -O0 -fno-inline -fno-inline-small-functions -fno-default-inline -fprofile-arcs -ftest-coverage)
+            if (CMAKE_COMPILER_IS_GNUCC)
+                target_compile_options(${target}-coverage PRIVATE -coverage -g -O0 -fno-inline -fno-inline-small-functions -fno-default-inline -fprofile-arcs -ftest-coverage)
+            else()
+                target_compile_options(${target}-coverage PRIVATE -coverage -g -O0 -fno-inline -fprofile-arcs -ftest-coverage)
+            endif()
             target_link_options(${target}-coverage PRIVATE -coverage)
             if (linkLibs)
                 target_link_libraries(${target}-coverage PRIVATE ${linkLibs})
@@ -231,7 +235,9 @@ macro(etn_test_target target)
             if (GCOVR)
                 file(APPEND ${CMAKE_BINARY_DIR}/coverage.targets "
                     cmake --build ${CMAKE_BINARY_DIR} --target ${target}-coverage
+                    cd ${CMAKE_CURRENT_BINARY_DIR}/
                     ${CMAKE_CURRENT_BINARY_DIR}/${target}-coverage
+                    cd ~
                     ${GCOVR} -x -r ${base} --xml-pretty --print-summary --object-directory ${work} -o ${out}/${target}.xml -f ${_srcDir}
                 ")
             endif()
