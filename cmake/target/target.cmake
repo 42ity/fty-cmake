@@ -102,6 +102,10 @@ macro(create_target name type output)
     if (NOT "${type}" STREQUAL "interface")
         set_target_properties(${name} PROPERTIES LINKER_LANGUAGE CXX)
     endif()
+
+    if(NOT "${type}" STREQUAL "interface")
+        target_link_options(${name} PRIVATE "-Wl,--disable-new-dtags")
+    endif()
 endmacro()
 
 ##############################################################################################################
