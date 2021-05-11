@@ -22,14 +22,38 @@ endmacro()
 
 function(add_dependecy name)
     cmake_parse_arguments(args
-        ""
-        "VERSION"
+        "AUTOCONF"
+        "VERSION;GIT;NAME;SRC_PREFIX"
         "LIB_OUTPUT;HEADER_OUTPUT;DEPENDENCIES"
         ${ARGN}
     )
 
     foreach(dep ${args_DEPENDENCIES})
         resolve(${dep})
+
+#        unset(inc)
+
+#        get_target_property(type ${dep} TYPE)
+#        if ("${type}" STREQUAL "INTERFACE_LIBRARY")
+#            if (TARGET ${dep}-props)
+#                get_target_property(src ${dep}-props SOURCE_DIR)
+#                get_target_property(_inc ${dep}-props INTERFACE_INCLUDE_DIR)
+#            endif()
+#        else()
+#            get_target_property(src ${dep} SOURCE_DIR)
+#            get_target_property(_inc ${dep} TARGET_INCLUDE_DIR)
+#            if (src AND NOT _inc)
+#                set(inc ${src})
+#            endif()
+#            if (_inc AND src)
+#                set(inc ${src}/${_inc})
+#            endif()
+#        endif()
+#        if (inc)
+#            list(APPEND _EXTERN_CMAKE_INCLUDE -D${dep}_INCLUDE=${inc})
+#        else()
+#            list(APPEND _EXTERN_CMAKE_INCLUDE -D${dep}_INCLUDE=${CMAKE_BINARY_DIR}/deps-runtime/include)
+#        endif()
     endforeach()
 
     ProcessorCount(NBJOBS)
@@ -37,22 +61,27 @@ function(add_dependecy name)
         set(NBJOBS 1)
     endif()
 
+    set(NAME           ${name})
+    set(GIT            ${args_GIT})
     set(VERSION        ${args_VERSION})
+    set(SRC_PREFIX     ${args_SRC_PREFIX})
     set(INSTALL_PREFIX ${CMAKE_BINARY_DIR}/deps-runtime)
     set(SRC_DIR        ${CMAKE_BINARY_DIR}/deps-src/${name})
     set(BUILD_DIR      ${CMAKE_BINARY_DIR}/deps-build/${name})
     set(DOWNLOAD_DIR   ${CMAKE_BINARY_DIR}/deps-download/${name})
 
     getAllTargets(allTargets)
-    set(EXTERN_CMAKE_FLAGS)
+    set(_EXTERN_CMAKE_FLAGS)
+    set(_EXTERN_CMAKE_INCLUDE)
     set(_PKG_PATH)
     set(_EXTERN_LDFLAGS)
     set(_EXTERN_CXXFLAGS)
     foreach(tar ${allTargets})
         unset(dir)
+        unset(inc)
         unset(_inc)
         unset(src)
-        if(NOT (tar MATCHES "-props$" OR tar MATCHES "_build$"))
+        if(NOT (tar MATCHES "-props$" OR tar MATCHES "_build$" OR tar MATCHES "coverage"))
             get_target_property(type ${tar} TYPE)
             if ("${type}" STREQUAL "INTERFACE_LIBRARY")
                 if (TARGET ${tar}-props)
@@ -73,15 +102,16 @@ function(add_dependecy name)
             endif()
 
             if (dir)
-                set(EXTERN_CMAKE_FLAGS "${EXTERN_CMAKE_FLAGS} -D${tar}_DIR=${dir}")
+                list(APPEND _EXTERN_CMAKE_FLAGS -D${tar}_DIR=${dir})
                 list(APPEND _EXTERN_LDFLAGS -L${dir})
                 list(APPEND _PKG_PATH ${dir})
             endif()
             if (inc)
-                list(APPEND _EXTERN_CXXFLAGS -I${inc})
+                list(APPEND _EXTERN_CXXFLAGS "-isystem ${inc}")
             endif()
         endif()
     endforeach()
+    list(APPEND _EXTERN_CXXFLAGS -I${CMAKE_BINARY_DIR}/deps-runtime/include)
 
     list(REMOVE_DUPLICATES _EXTERN_LDFLAGS)
     string(REPLACE ";" " " EXTERN_LDFLAGS "${_EXTERN_LDFLAGS}")
@@ -92,9 +122,24 @@ function(add_dependecy name)
     list(REMOVE_DUPLICATES _PKG_PATH)
     string(REPLACE ";" ":" PKG_PATH "${_PKG_PATH}")
 
-    configure_file(${CMAKE_CURRENT_LIST_DIR}/CMakeLists.txt.in
-        ${DOWNLOAD_DIR}/CMakeLists.txt
-    )
+    list(REMOVE_DUPLICATES _EXTERN_CMAKE_FLAGS)
+    string(REPLACE ";" " " EXTERN_CMAKE_FLAGS "${_EXTERN_CMAKE_FLAGS}")
+
+    if (EXISTS "${FTY_CMAKE_CMAKE_DIR}/templates/")
+        set(templates "${FTY_CMAKE_CMAKE_DIR}/templates")
+    else()
+        set(templates "${CMAKE_CURRENT_LIST_DIR}/cmake/templates")
+    endif()
+
+    if (args_AUTOCONF)
+        configure_file(${templates}/external-autoconf.cmake.in
+            ${DOWNLOAD_DIR}/CMakeLists.txt
+        )
+    else()
+        configure_file(${templates}/external-cmake.cmake.in
+            ${DOWNLOAD_DIR}/CMakeLists.txt
+        )
+    endif()
 
     set(output)
     set(liboutput)
@@ -118,25 +163,43 @@ function(add_dependecy name)
 
     string(REPLACE "::" "-" sName ${name})
 
-    add_custom_target(
-        ${sName}_build
-        DEPENDS ${args_DEPENDENCIES} ${output}
-        WORKING_DIRECTORY ${DOWNLOAD_DIR}
-    )
+    if (NOT TARGET ${sName}_build)
+        add_custom_target(
+            ${sName}_build
+            DEPENDS ${args_DEPENDENCIES} ${output}
+            WORKING_DIRECTORY ${DOWNLOAD_DIR}
+        )
+    endif()
+
+    set(${name}_DIR ${INSTALL_PREFIX}/share/cmake/${name})
+    find_package(${name} QUIET PATHS ${INSTALL_PREFIX} NO_DEFAULT_PATH)
+    unset(${name}_DIR)
 
     # Add cxxtools directly to our build.
     if (NOT TARGET ${name})
-        add_library(${sName} INTERFACE)
-        if (NOT ${sName} STREQUAL ${name})
-            add_library(${name} ALIAS ${sName})
+
+        set(ENV{PKG_CONFIG_PATH} "${INSTALL_PREFIX}/lib/pkgconfig")
+
+        pkg_check_modules(${name}_prefix QUIET IMPORTED_TARGET ${name})
+        if (${name}_prefix_FOUND)
+            add_library(${name} INTERFACE)
+            target_link_libraries(${name} INTERFACE PkgConfig::${lib}_prefix)
         endif()
-        add_dependencies(${sName} ${sName}_build)
-        target_include_directories(${sName}
-            INTERFACE
-                ${INSTALL_PREFIX}/include
-        )
-        if (args_LIB_OUTPUT)
-            target_link_libraries(${sName} INTERFACE ${output})
+
+
+        if (NOT TARGET ${name})
+            add_library(${sName} INTERFACE)
+            if (NOT ${sName} STREQUAL ${name})
+                add_library(${name} ALIAS ${sName})
+            endif()
+            add_dependencies(${sName} ${sName}_build)
+            target_include_directories(${sName}
+                SYSTEM INTERFACE
+                    $<BUILD_INTERFACE:${INSTALL_PREFIX}/include>
+            )
+            if (args_LIB_OUTPUT)
+                target_link_libraries(${sName} INTERFACE ${output})
+            endif()
         endif()
     endif()
 endfunction()

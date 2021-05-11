@@ -137,6 +137,7 @@ function(setup_includes name includes include_dir)
     endif()
 
     if (NOT "${${includes}}" STREQUAL "")
+        etn_set_custom_property(${name} PRIVATE_INCLUDE ${${includes}})
         target_include_directories(${name} PRIVATE
             ${${includes}}
         )
