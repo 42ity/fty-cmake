@@ -104,6 +104,7 @@ macro(create_target name type output)
     endif()
 
     if(NOT "${type}" STREQUAL "interface")
+        target_link_options(${name} PRIVATE -z defs)
         target_link_options(${name} PRIVATE "-Wl,--disable-new-dtags")
     endif()
 endmacro()
