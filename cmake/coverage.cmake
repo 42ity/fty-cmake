@@ -138,7 +138,9 @@ macro(etn_test_target target)
                 list(APPEND includeDirs ${inc})
             endforeach()
         endif()
-        list(REMOVE_DUPLICATES includeDirs)
+        if (includeDirs)
+            list(REMOVE_DUPLICATES includeDirs)
+        endif()
 
         cmake_parse_arguments(args "" "SUBDIR" "SOURCES;USES;PREPROCESSOR;FLAGS;CONFIGS;INCLUDE_DIRS" ${ARGN})
 
