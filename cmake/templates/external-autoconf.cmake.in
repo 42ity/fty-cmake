@@ -17,6 +17,7 @@ ExternalProject_Add(@NAME@-build
                         "CXXFLAGS=-I@INSTALL_PREFIX@/include @EXTERN_CXXFLAGS@"
                         "LDFLAGS=-L@INSTALL_PREFIX@/lib @EXTERN_LDFLAGS@"
                         --prefix=@INSTALL_PREFIX@
+                        @EXTRA_ARGS@
     BUILD_COMMAND     make -j @NBJOBS@
     INSTALL_COMMAND   make install
 )

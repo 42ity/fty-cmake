@@ -101,11 +101,8 @@ macro(etn_test_target target)
         include(CTest)
         enable_testing()
 
-        if (NOT COMMAND catch_discover_tests)
-            find_package(Catch2 REQUIRED)
-            include(Catch)
-            #include(catch_discover_tests)
-        endif()
+        find_package(Catch2 REQUIRED)
+        include(Catch)
 
         get_target_property(type ${target} TYPE)
         if (type STREQUAL "INTERFACE_LIBRARY")

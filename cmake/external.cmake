@@ -24,7 +24,7 @@ function(add_dependecy name)
     cmake_parse_arguments(args
         "AUTOCONF"
         "VERSION;GIT;NAME;SRC_PREFIX"
-        "LIB_OUTPUT;HEADER_OUTPUT;DEPENDENCIES"
+        "LIB_OUTPUT;HEADER_OUTPUT;DEPENDENCIES;EXTRA_ARGS"
         ${ARGN}
     )
 
@@ -69,6 +69,7 @@ function(add_dependecy name)
     set(SRC_DIR        ${CMAKE_BINARY_DIR}/deps-src/${name})
     set(BUILD_DIR      ${CMAKE_BINARY_DIR}/deps-build/${name})
     set(DOWNLOAD_DIR   ${CMAKE_BINARY_DIR}/deps-download/${name})
+    set(EXTRA_ARGS     ${args_EXTRA_ARGS})
 
     getAllTargets(allTargets)
     set(_EXTERN_CMAKE_FLAGS)
@@ -130,6 +131,14 @@ function(add_dependecy name)
     else()
         set(templates "${CMAKE_CURRENT_LIST_DIR}/cmake/templates")
     endif()
+
+    string(REPLACE ";" " " EXTRA_ARGS "${EXTRA_ARGS}")
+
+    string(REGEX MATCHALL "@(.+)@" matches "${EXTRA_ARGS}")
+    foreach(match ${matches})
+        string(REGEX REPLACE "@(.+)@" "\\1" var "${match}")
+        string(REPLACE "${match}" "${${var}}" EXTRA_ARGS "${EXTRA_ARGS}")
+    endforeach()
 
     if (args_AUTOCONF)
         configure_file(${templates}/external-autoconf.cmake.in
