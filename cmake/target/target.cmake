@@ -102,6 +102,11 @@ macro(create_target name type output)
     if (NOT "${type}" STREQUAL "interface")
         set_target_properties(${name} PROPERTIES LINKER_LANGUAGE CXX)
     endif()
+
+    if(NOT "${type}" STREQUAL "interface")
+        target_link_options(${name} PRIVATE -z defs)
+        target_link_options(${name} PRIVATE "-Wl,--disable-new-dtags")
+    endif()
 endmacro()
 
 ##############################################################################################################
@@ -137,6 +142,7 @@ function(setup_includes name includes include_dir)
     endif()
 
     if (NOT "${${includes}}" STREQUAL "")
+        etn_set_custom_property(${name} PRIVATE_INCLUDE ${${includes}})
         target_include_directories(${name} PRIVATE
             ${${includes}}
         )

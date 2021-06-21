@@ -24,9 +24,12 @@ macro(etn_coverage target)
     get_target_property(type ${target} TYPE)
     get_target_property(sourceFiles ${target} SOURCES)
     get_target_property(linkLibs ${target} LINK_LIBRARIES)
-    get_target_property(includeDirs ${target} INCLUDE_DIRECTORIES)
+    get_target_property(_includeDirs ${target} INCLUDE_DIRECTORIES)
     get_target_property(compileDefinitions ${target} COMPILE_DEFINITIONS)
     get_target_property(compileOptions ${target} COMPILE_OPTIONS)
+
+    get_target_property(_includeDirs1 ${target} INTERFACE_INCLUDE_DIRECTORIES)
+    message("=============== ${_includeDirs1}")
 
     set(newTarget ${target}-coverage)
     if ("${type}" STREQUAL "EXECUTABLE")
@@ -98,17 +101,13 @@ macro(etn_test_target target)
         include(CTest)
         enable_testing()
 
-        if (NOT COMMAND catch_discover_tests)
-            find_package(Catch2 REQUIRED)
-            include(Catch)
-            #include(catch_discover_tests)
-        endif()
+        find_package(Catch2 REQUIRED)
+        include(Catch)
 
         get_target_property(type ${target} TYPE)
         if (type STREQUAL "INTERFACE_LIBRARY")
             get_target_property(sourceFiles ${target}-props SOURCES)
             get_target_property(linkLibs ${target} INTERFACE_LINK_LIBRARIES)
-            get_target_property(includeDirs ${target}-props INCLUDE_DIRECTORIES)
             get_target_property(compileDefinitions ${target}-props COMPILE_DEFINITIONS)
             get_target_property(compileOptions ${target}-props COMPILE_OPTIONS)
             get_target_property(_srcDir ${target}-props SOURCE_DIR)
@@ -116,7 +115,6 @@ macro(etn_test_target target)
         else()
             get_target_property(sourceFiles ${target} SOURCES)
             get_target_property(linkLibs ${target} LINK_LIBRARIES)
-            get_target_property(includeDirs ${target} INCLUDE_DIRECTORIES)
             get_target_property(compileDefinitions ${target} COMPILE_DEFINITIONS)
             get_target_property(compileOptions ${target} COMPILE_OPTIONS)
             get_target_property(_srcDir ${target} SOURCE_DIR)
@@ -130,7 +128,18 @@ macro(etn_test_target target)
             set(inc ${_srcDir}/${_inc})
         endif()
 
-        cmake_parse_arguments(args "" "SUBDIR" "SOURCES;USES;PREPROCESSOR;FLAGS;CONFIGS" ${ARGN})
+        set(includeDirs)
+        etn_get_custom_property(privLibs ${target} PRIVATE_INCLUDE)
+        if (privLibs)
+            foreach(inc ${privLibs})
+                list(APPEND includeDirs ${inc})
+            endforeach()
+        endif()
+        if (includeDirs)
+            list(REMOVE_DUPLICATES includeDirs)
+        endif()
+
+        cmake_parse_arguments(args "" "SUBDIR" "SOURCES;USES;PREPROCESSOR;FLAGS;CONFIGS;INCLUDE_DIRS" ${ARGN})
 
         # create unit test
         message(STATUS "Creating ${target}-test target")
@@ -150,6 +159,8 @@ macro(etn_test_target target)
                 ${args_PREPROCESSOR}
                 ${compileDefinitions}
             INCLUDE_DIRS
+                ${args_INCLUDE_DIRS}
+                ${includeDirs}
                 ${inc}
         )
 
@@ -195,6 +206,8 @@ macro(etn_test_target target)
                     ${args_PREPROCESSOR}
                     ${compileDefinitions}
                 INCLUDE_DIRS
+                    ${args_INCLUDE_DIRS}
+                    ${includeDirs}
                     ${inc}
             )
 
