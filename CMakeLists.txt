@@ -27,6 +27,8 @@ etn_target(interface ${PROJECT_NAME}
         cmake/target/install.cmake
         cmake/target/properties.cmake
         cmake/templates/package.pc.in
+        cmake/templates/external-autoconf.cmake.in
+        cmake/templates/external-cmake.cmake.in
 
         cmake/external/*
 )

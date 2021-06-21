@@ -106,14 +106,14 @@ function(etn_install_target target)
         # install pkg config
         if (NOT "${pkgFile}" STREQUAL "")
             install(FILES
-                ${CMAKE_CURRENT_BINARY_DIR}/${target}.pc
+                ${pkgFile}
                 DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig/
             )
-            install(FILES
-                ${CMAKE_CURRENT_BINARY_DIR}/${target}.pc
-                DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig/
-                RENAME lib${target}.pc
-            )
+#            install(FILES
+#                ${pkgFile}
+#                DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig/
+#                RENAME lib${target}.pc
+#            )
         endif()
     endif()
 
