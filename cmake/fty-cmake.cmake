@@ -142,3 +142,12 @@ macro(etn_test name)
 endmacro()
 
 ##############################################################################################################
+
+macro(relative_option parent_option new_option_name text)
+  if (${parent_option})
+    option(${new_option_name} ${text} ON)
+  else()
+    option(${new_option_name} ${text} OFF)
+  endif()
+endmacro()
+
