@@ -139,7 +139,7 @@ macro(etn_test_target target)
             list(REMOVE_DUPLICATES includeDirs)
         endif()
 
-        cmake_parse_arguments(args "" "SUBDIR" "SOURCES;USES;PREPROCESSOR;FLAGS;CONFIGS;INCLUDE_DIRS" ${ARGN})
+        cmake_parse_arguments(args "" "SUBDIR" "SOURCES;USES;PREPROCESSOR;FLAGS;GCC_FLAGS;CLANG_FLAGS;CONFIGS;INCLUDE_DIRS" ${ARGN})
 
         # create unit test
         message(STATUS "Creating ${target}-test target")
@@ -163,6 +163,13 @@ macro(etn_test_target target)
                 ${includeDirs}
                 ${inc}
         )
+
+        if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+            set_cppflags(${target}-test args_FLAGS args_CLANG_FLAGS)
+        else()
+            message("++++ set ${args_GCC_FLAGS}")
+            set_cppflags(${target}-test args_FLAGS args_GCC_FLAGS)
+        endif()
 
         if (linkLibs)
             target_link_libraries(${target}-test PRIVATE ${linkLibs})
@@ -210,6 +217,13 @@ macro(etn_test_target target)
                     ${includeDirs}
                     ${inc}
             )
+
+            if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+                set_cppflags(${target}-coverage args_FLAGS args_CLANG_FLAGS)
+            else()
+                message("++++ set ${args_GCC_FLAGS}")
+                set_cppflags(${target}-coverage args_FLAGS args_GCC_FLAGS)
+            endif()
 
             if (CMAKE_COMPILER_IS_GNUCC)
                 target_compile_options(${target}-coverage PRIVATE -coverage -g -O0 -fno-inline -fno-inline-small-functions -fno-default-inline -fprofile-arcs -ftest-coverage)

@@ -65,6 +65,7 @@ set(GCC_BASIC_WARNINGS
     -Wdouble-promotion # warn if float is implicit promoted to double
     -Wformat=2 # warn on security issues around functions that format output (ie printf)
     -Wno-redundant-move
+    -Wdeprecated-declarations
 )
 
 set(CLANG_WARNINGS ${CLANG_BASIC_WARNINGS}
