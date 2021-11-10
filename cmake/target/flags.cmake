@@ -1,6 +1,6 @@
 ##############################################################################################################
 
-function(set_cppflags name flags)
+function(set_cppflags name flags extraFlags)
     get_target_property(type ${name} TYPE)
     if (NOT "${type}" STREQUAL "INTERFACE_LIBRARY")
         separate_arguments(args NATIVE_COMMAND ${WARNINGS_STR})
@@ -10,6 +10,9 @@ function(set_cppflags name flags)
 
     if (${flags})
         target_compile_options(${name} PRIVATE ${${flags}})
+    endif()
+    if (${extraFlags})
+        target_compile_options(${name} PRIVATE ${${extraFlags}})
     endif()
 endfunction()
 

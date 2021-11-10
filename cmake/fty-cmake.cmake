@@ -64,7 +64,9 @@ function(etn_target type name)
         PUBLIC              # public headers
         PUBLIC_HEADERS      # public headers
         PREPROCESSOR        # preprocessor definitions
-        FLAGS               # extra compilation flags
+        FLAGS               # extra gcc and clang common compilation flags
+        GCC_FLAGS           # extra gcc compilation flags
+        CLANG_FLAGS         # extra clang compilation flags
         CMAKE               # extra cmake scripts
         CONFIGS             # configuration files
         DATA                # extra data to install
@@ -106,7 +108,11 @@ function(etn_target type name)
     parse_using(${name} args_USES args_USES_PUBLIC)
     setup_includes(${name} args_INCLUDE_DIRS "${args_PUBLIC_INCLUDE_DIR}")
     setup_version(${name})
-    set_cppflags(${name} args_FLAGS)
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+        set_cppflags(${name} args_FLAGS args_CLANG_FLAGS)
+    else()
+        set_cppflags(${name} args_FLAGS args_GCC_FLAGS)
+    endif()
     preprocessor(${name} args_PREPROCESSOR)
     etn_set_custom_property(${name} PRIVATE "${args_PRIVATE}")
     if (NOT args_PRIVATE)
