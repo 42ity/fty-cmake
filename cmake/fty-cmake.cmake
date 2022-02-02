@@ -18,11 +18,9 @@ include(${CMAKE_CURRENT_LIST_DIR}/external.cmake)
 # Warnings
 include(${CMAKE_CURRENT_LIST_DIR}/warnings.cmake)
 
-# Coverage
-include(${CMAKE_CURRENT_LIST_DIR}/coverage.cmake)
+# Tests tools include coverage and meme check
+include(${CMAKE_CURRENT_LIST_DIR}/test-tools.cmake)
 
-## Valgrind
-#include(${CMAKE_CURRENT_LIST_DIR}/memcheck.cmake)
 
 # Raven cmake
 

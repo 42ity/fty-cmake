@@ -14,9 +14,8 @@ etn_target(interface ${PROJECT_NAME}
     CMAKE
         cmake/external.cmake
         cmake/fty-cmake.cmake
-        cmake/memcheck.cmake
         cmake/warnings.cmake
-        cmake/coverage.cmake
+        cmake/test-tools.cmake
 
         cmake/target/export.cmake
         cmake/target/flags.cmake

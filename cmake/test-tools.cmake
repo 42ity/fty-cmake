@@ -1,3 +1,6 @@
+# This file contains tools for test targets
+# Definition of make targets
+
 if (NOT TARGET coverage-local)
     add_custom_target(coverage-local
         COMMAND sh "${CMAKE_BINARY_DIR}/coverage-local.targets"
@@ -14,88 +17,23 @@ if (NOT TARGET coverage)
     file(WRITE ${CMAKE_BINARY_DIR}/coverage.targets "")
 endif()
 
-macro(etn_coverage target)
-    cmake_parse_arguments(args "" "SUBDIR" "" ${ARGN})
-
-    find_program(LCOV lcov)
-    find_program(GCOVR gcovr)
-    find_program(GENHTML genhtml)
-
-    get_target_property(type ${target} TYPE)
-    get_target_property(sourceFiles ${target} SOURCES)
-    get_target_property(linkLibs ${target} LINK_LIBRARIES)
-    get_target_property(_includeDirs ${target} INCLUDE_DIRECTORIES)
-    get_target_property(compileDefinitions ${target} COMPILE_DEFINITIONS)
-    get_target_property(compileOptions ${target} COMPILE_OPTIONS)
-
-    get_target_property(_includeDirs1 ${target} INTERFACE_INCLUDE_DIRECTORIES)
-    message("=============== ${_includeDirs1}")
-
-    set(newTarget ${target}-coverage)
-    if ("${type}" STREQUAL "EXECUTABLE")
-        add_executable(${newTarget}
-            ${sourceFiles}
-        )
-    endif()
-
-    target_include_directories(${newTarget} PRIVATE
-        ${includeDirs}
+if (NOT TARGET memcheck)
+    add_custom_target(memcheck
+        COMMAND sh "${CMAKE_BINARY_DIR}/memcheck.targets"
+        COMMENT "Run valgrind on tests"
     )
+    file(WRITE ${CMAKE_BINARY_DIR}/memcheck.targets "")
+endif()
 
-    target_link_libraries(${newTarget} PRIVATE
-        ${linkLibs}
+if (NOT TARGET check)
+    add_custom_target(check
+        COMMAND sh "${CMAKE_BINARY_DIR}/check.targets"
+        COMMENT "Run tests"
     )
+    file(WRITE ${CMAKE_BINARY_DIR}/check.targets "")
+endif()
 
-    if (compileOptions)
-        target_compile_options(${newTarget} PRIVATE
-            ${compileOptions}
-        )
-    endif()
-
-    if (compileDefinitions)
-        target_compile_definitions(${newTarget} PRIVATE
-            ${compileDefinitions}
-        )
-    endif()
-
-    target_compile_options(${newTarget} PRIVATE --coverage -g -O0 -fno-inline -fkeep-inline-functions)
-    target_link_options(${newTarget} PRIVATE -coverage)
-    target_link_libraries(${newTarget} PRIVATE gcov)
-
-    set_target_properties(${newTarget} PROPERTIES CXX_STANDARD 17 EXCLUDE_FROM_ALL TRUE)
-
-    add_dependencies(coverage-local ${newTarget})
-    add_dependencies(coverage ${newTarget})
-
-    set(out ${CMAKE_BINARY_DIR}/capture/${target})
-    set(base ${CMAKE_CURRENT_SOURCE_DIR})
-    set(work ${CMAKE_CURRENT_BINARY_DIR})
-    if (args_SUBDIR)
-        set(base ${CMAKE_CURRENT_SOURCE_DIR}/${args_SUBDIR})
-        #set(work ${CMAKE_CURRENT_BINARY_DIR}/${args_SUBDIR})
-    endif()
-
-    file(MAKE_DIRECTORY ${out})
-
-    file(APPEND ${CMAKE_BINARY_DIR}/coverage-local.targets "
-        ${LCOV} -d ${work}  -b ${base} --zerocounters
-        ${LCOV} -c -i -d ${work} -b ${base} -o ${out}/${target}.base
-        ${CMAKE_CURRENT_BINARY_DIR}/${newTarget}
-        ${LCOV} -no-external -d ${work} -b ${base} --capture --output-file ${out}/${target}.capture
-        ${LCOV} -a ${out}/${target}.base -a ${out}/${target}.capture --output-file ${out}/${target}.total
-        ${LCOV} --remove ${out}/${target}.total --output-file ${out}/${target}.info
-        ${GENHTML} --demangle-cpp --ignore-errors source -o ${out}/${target} ${out}/${target}.info
-    ")
-
-    file(APPEND ${CMAKE_BINARY_DIR}/coverage.targets "
-        ${CMAKE_CURRENT_BINARY_DIR}/${newTarget}
-        ${GCOVR} -x -r ${base} --object-directory ${work} -o ${out}/${target}.xml
-    ")
-
-    get_property(tars DIRECTORY ${CMAKE_SOURCE_DIR} PROPERTY COVERAGE_TARGETS)
-    set_property(DIRECTORY ${CMAKE_SOURCE_DIR} PROPERTY COVERAGE_TARGETS ${tars})
-endmacro()
-
+# Macro for test including coverage, test and memchecks
 macro(etn_test_target target)
     if (BUILD_TESTING)
         include(CTest)
@@ -169,7 +107,53 @@ macro(etn_test_target target)
         endif()
 
         catch_discover_tests(${target}-test)
+        
+        # Create make check targets
+        file(APPEND ${CMAKE_BINARY_DIR}/check.targets "
+            # Test for target ${target}
+            cmake --build ${CMAKE_BINARY_DIR} --target ${target}-test
+            ${CMAKE_CURRENT_BINARY_DIR}/${target}-test
 
+            if [ \"$?\" != \"0\" ]; then
+                echo \"Error detected on ${target}-test (${CMAKE_CURRENT_BINARY_DIR}/${target}-test)\"
+                echo \"Stopping\"
+                echo \"\"
+                exit 1
+            else
+                echo \"\"
+                echo \"No error detected on ${target}-test (${CMAKE_CURRENT_BINARY_DIR}/${target}-test)\"
+                echo \"\"
+            fi
+
+        ")
+
+        # Create make memcheck targets
+        find_program(VALGRIND valgrind)
+
+        if (NOT VALGRIND)
+            message("valgrind was not found, please do `apt install valgrind`")
+        else()
+            file(APPEND ${CMAKE_BINARY_DIR}/memcheck.targets "
+                # Valgrind Test for target ${target}
+                cmake --build ${CMAKE_BINARY_DIR} --target ${target}-test
+                ${VALGRIND} --error-exitcode=1 --leak-check=full ${CMAKE_CURRENT_BINARY_DIR}/${target}-test
+
+                if [ \"$?\" != \"0\" ]; then
+                    echo \"\"
+                    echo \"Error detected on ${target}-test (${CMAKE_CURRENT_BINARY_DIR}/${target}-test)\"
+                    echo \"Stopping\"
+                    exit 1
+                else
+                    echo \"\"
+                    echo \"No error detected on ${target}-test (${CMAKE_CURRENT_BINARY_DIR}/${target}-test)\"
+                    echo \"\"
+                fi
+                
+                
+            ")
+        endif()
+
+        # Check for coverage tools
         find_program(LCOV lcov)
         find_program(GCOVR gcovr)
         find_program(GENHTML genhtml)
@@ -260,5 +244,89 @@ macro(etn_test_target target)
         endif()
 
     endif()
+endmacro()
+
+
+# Macro for coverage (historical)
+macro(etn_coverage target)
+    cmake_parse_arguments(args "" "SUBDIR" "" ${ARGN})
+
+    find_program(LCOV lcov)
+    find_program(GCOVR gcovr)
+    find_program(GENHTML genhtml)
+
+    get_target_property(type ${target} TYPE)
+    get_target_property(sourceFiles ${target} SOURCES)
+    get_target_property(linkLibs ${target} LINK_LIBRARIES)
+    get_target_property(_includeDirs ${target} INCLUDE_DIRECTORIES)
+    get_target_property(compileDefinitions ${target} COMPILE_DEFINITIONS)
+    get_target_property(compileOptions ${target} COMPILE_OPTIONS)
+
+    get_target_property(_includeDirs1 ${target} INTERFACE_INCLUDE_DIRECTORIES)
+    message("=============== ${_includeDirs1}")
+
+    set(newTarget ${target}-coverage)
+    if ("${type}" STREQUAL "EXECUTABLE")
+        add_executable(${newTarget}
+            ${sourceFiles}
+        )
+    endif()
+
+    target_include_directories(${newTarget} PRIVATE
+        ${includeDirs}
+    )
+
+    target_link_libraries(${newTarget} PRIVATE
+        ${linkLibs}
+    )
+
+    if (compileOptions)
+        target_compile_options(${newTarget} PRIVATE
+            ${compileOptions}
+        )
+    endif()
+
+    if (compileDefinitions)
+        target_compile_definitions(${newTarget} PRIVATE
+            ${compileDefinitions}
+        )
+    endif()
+
+    target_compile_options(${newTarget} PRIVATE --coverage -g -O0 -fno-inline -fkeep-inline-functions)
+    target_link_options(${newTarget} PRIVATE -coverage)
+    target_link_libraries(${newTarget} PRIVATE gcov)
+
+    set_target_properties(${newTarget} PROPERTIES CXX_STANDARD 17 EXCLUDE_FROM_ALL TRUE)
+
+    add_dependencies(coverage-local ${newTarget})
+    add_dependencies(coverage ${newTarget})
+
+    set(out ${CMAKE_BINARY_DIR}/capture/${target})
+    set(base ${CMAKE_CURRENT_SOURCE_DIR})
+    set(work ${CMAKE_CURRENT_BINARY_DIR})
+    if (args_SUBDIR)
+        set(base ${CMAKE_CURRENT_SOURCE_DIR}/${args_SUBDIR})
+        #set(work ${CMAKE_CURRENT_BINARY_DIR}/${args_SUBDIR})
+    endif()
+
+    file(MAKE_DIRECTORY ${out})
+
+    file(APPEND ${CMAKE_BINARY_DIR}/coverage-local.targets "
+        ${LCOV} -d ${work}  -b ${base} --zerocounters
+        ${LCOV} -c -i -d ${work} -b ${base} -o ${out}/${target}.base
+        ${CMAKE_CURRENT_BINARY_DIR}/${newTarget}
+        ${LCOV} -no-external -d ${work} -b ${base} --capture --output-file ${out}/${target}.capture
+        ${LCOV} -a ${out}/${target}.base -a ${out}/${target}.capture --output-file ${out}/${target}.total
+        ${LCOV} --remove ${out}/${target}.total --output-file ${out}/${target}.info
+        ${GENHTML} --demangle-cpp --ignore-errors source -o ${out}/${target} ${out}/${target}.info
+    ")
+
+    file(APPEND ${CMAKE_BINARY_DIR}/coverage.targets "
+        ${CMAKE_CURRENT_BINARY_DIR}/${newTarget}
+        ${GCOVR} -x -r ${base} --object-directory ${work} -o ${out}/${target}.xml
+    ")
+
+    get_property(tars DIRECTORY ${CMAKE_SOURCE_DIR} PROPERTY COVERAGE_TARGETS)
+    set_property(DIRECTORY ${CMAKE_SOURCE_DIR} PROPERTY COVERAGE_TARGETS ${tars})
 endmacro()
 
