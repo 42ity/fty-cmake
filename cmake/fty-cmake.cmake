@@ -18,7 +18,7 @@ include(${CMAKE_CURRENT_LIST_DIR}/external.cmake)
 # Warnings
 include(${CMAKE_CURRENT_LIST_DIR}/warnings.cmake)
 
-# Tests tools include coverage and meme check
+# Tests tools include check, coverage and memcheck
 include(${CMAKE_CURRENT_LIST_DIR}/test-tools.cmake)
 
 
