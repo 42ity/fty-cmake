@@ -77,11 +77,13 @@ macro(etn_test_target target)
             list(REMOVE_DUPLICATES includeDirs)
         endif()
 
-        cmake_parse_arguments(args "" "SUBDIR" "SOURCES;USES;PREPROCESSOR;FLAGS;CONFIGS;INCLUDE_DIRS" ${ARGN})
+        cmake_parse_arguments(args "" "SUBDIR" "DATA;SOURCES;USES;PREPROCESSOR;FLAGS;CONFIGS;INCLUDE_DIRS" ${ARGN})
 
         # create unit test
         message(STATUS "Creating ${target}-test target")
         etn_target(exe ${target}-test PRIVATE
+            DATA
+                ${args_DATA}
             CONFIGS
                 ${args_CONFIGS}
             SOURCES
