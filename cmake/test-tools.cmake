@@ -113,19 +113,24 @@ macro(etn_test_target target)
         # Create make check targets
         file(APPEND ${CMAKE_BINARY_DIR}/check.targets "
             # Test for target ${target}
+            ROOT_FOLDER=$(pwd)
             cmake --build ${CMAKE_BINARY_DIR} --target ${target}-test
-            ${CMAKE_CURRENT_BINARY_DIR}/${target}-test
+            cd ${CMAKE_CURRENT_BINARY_DIR}
+            ./${target}-test
 
             if [ \"$?\" != \"0\" ]; then
                 echo \"Error detected on ${target}-test (${CMAKE_CURRENT_BINARY_DIR}/${target}-test)\"
                 echo \"Stopping\"
                 echo \"\"
+                cd ${ROOT_FOLDER}
                 exit 1
             else
                 echo \"\"
                 echo \"No error detected on ${target}-test (${CMAKE_CURRENT_BINARY_DIR}/${target}-test)\"
                 echo \"\"
             fi
+            
+            cd ${ROOT_FOLDER}
 
         ")
 
@@ -138,12 +143,14 @@ macro(etn_test_target target)
             file(APPEND ${CMAKE_BINARY_DIR}/memcheck.targets "
                 # Valgrind Test for target ${target}
                 cmake --build ${CMAKE_BINARY_DIR} --target ${target}-test
-                ${VALGRIND} --error-exitcode=1 --leak-check=full ${CMAKE_CURRENT_BINARY_DIR}/${target}-test
+                ROOT_FOLDER=$(pwd)
+                ${VALGRIND} --error-exitcode=1 --leak-check=full ./${target}-test
 
                 if [ \"$?\" != \"0\" ]; then
                     echo \"\"
                     echo \"Error detected on ${target}-test (${CMAKE_CURRENT_BINARY_DIR}/${target}-test)\"
                     echo \"Stopping\"
+                    cd ${ROOT_FOLDER}
                     exit 1
                 else
                     echo \"\"
@@ -151,6 +158,7 @@ macro(etn_test_target target)
                     echo \"\"
                 fi
                 
+                cd ${ROOT_FOLDER}
                 
             ")
         endif()
