@@ -144,6 +144,7 @@ macro(etn_test_target target)
                 # Valgrind Test for target ${target}
                 cmake --build ${CMAKE_BINARY_DIR} --target ${target}-test
                 ROOT_FOLDER=$(pwd)
+                cd ${CMAKE_CURRENT_BINARY_DIR}
                 ${VALGRIND} --error-exitcode=1 --leak-check=full ./${target}-test
 
                 if [ \"$?\" != \"0\" ]; then
