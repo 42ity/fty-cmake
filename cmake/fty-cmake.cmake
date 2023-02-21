@@ -3,6 +3,7 @@
 option(BUILD_TESTING "Build tests" OFF)
 option(BUILD_DOC "Build documentation" OFF)
 option(ENABLE_STANDALONE "Enable standalone mode" OFF)
+option(ENABLE_COVERITY_STUB "Enable coverity stub" OFF)
 
 set(FTY_CMAKE_CMAKE_DIR ${CMAKE_CURRENT_LIST_DIR})
 
@@ -116,6 +117,10 @@ function(etn_target type name)
             SYSTEMD_DESTINATION ${args_SYSTEMD_DESTINATION}
             CONFIGS_DESTINATION ${args_CONFIGS_DESTINATION}
         )
+    endif()
+
+    if(ENABLE_COVERITY_STUB)
+        add_compile_definitions(COVERITY_STUB)
     endif()
 
     dump_target(${name})
