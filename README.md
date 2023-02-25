@@ -69,7 +69,7 @@ Firstly system will try to find dependency in the system.
 If it will not found and ENABLE_STANDALONE is ON then will try to find it in `external` projects and will add it to compilation process.
 
 ### Coverity
-To build with coverity, you need to use the cmake option "ENABLE_COVERITY=ON"
+To build with coverity, you need to use the cmake option "ENABLE_COVERITY_STUB=ON"
 
 ### Example of the projects
 
