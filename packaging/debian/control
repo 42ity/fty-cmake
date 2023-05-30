@@ -1,5 +1,5 @@
 Source: fty-cmake
-Maintainer: Clement Perrette <clementperrette@eaton.com>
+Maintainer: fty-cmake Developers <opensource@eaton.com>
 Build-Depends:
     cmake (>=3.13),
     pkg-config,
@@ -14,4 +14,4 @@ Section: devel
 Depends:
     cmake (>=3.13),
     pkg-config
-Description: CMake helper for fty 
+Description: CMake helper for fty
